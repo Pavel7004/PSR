@@ -1,13 +1,14 @@
 package winner_definer
 
 import (
-	"github.com/pavel/PSR/pkg/domain"
-	"github.com/pavel/PSR/pkg/room"
 	"testing"
 	"time"
+
+	"github.com/pavel/PSR/pkg/domain"
+	"github.com/pavel/PSR/pkg/room"
 )
 
-func TestGetWinner(t *testing.T) {
+func TestGetWinners(t *testing.T) {
 	room := room.NewRoom(room.RoomConfig{
 		StepTimeout:    5 * time.Second,
 		MaxPlayerCount: 3,

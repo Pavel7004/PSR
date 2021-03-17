@@ -6,12 +6,12 @@ import (
 
 type WinnerDefiner struct{}
 
-type playerChoice struct {
-	playerId string
-	input    domain.Choice
+type PlayerChoice struct {
+	PlayerID string
+	Input    domain.Choice
 }
 
-func (wd *WinnerDefiner) GetWinners(playersChoices []playerChoice) []string {
+func (wd *WinnerDefiner) GetWinners(playersChoices []PlayerChoice) []string {
 	// => [
 	// 	{
 	// 		id: "Vasya",
@@ -30,7 +30,7 @@ func (wd *WinnerDefiner) GetWinners(playersChoices []playerChoice) []string {
 	// => ["Vasya", "Petya"]
 	count := [3]int{0}
 	for _, choice := range playersChoices {
-		count[int(choice.input)]++
+		count[int(choice.Input)]++
 	}
 	missing := -1
 	missingKol := 0
@@ -44,28 +44,20 @@ func (wd *WinnerDefiner) GetWinners(playersChoices []playerChoice) []string {
 		return nil
 	}
 	ret := []string{}
+	var another domain.Choice
 	switch missing {
 	case -1: // draw, all players lost
 		return nil
-	case 0: // Paper is missing
-		for _, choice := range playersChoices {
-			if choice.input.Compare(domain.ROCK) == 0 {
-				ret = append(ret, choice.playerId)
-			}
-		}
-	case 1: // Scissors is missing
-		ret := []string{}
-		for _, choice := range playersChoices {
-			if choice.input.Compare(domain.PAPER) == 0 {
-				ret = append(ret, choice.playerId)
-			}
-		}
-	case 2: // Rock is missing
-		ret := []string{}
-		for _, choice := range playersChoices {
-			if choice.input.Compare(domain.SCISSORS) == 0 {
-				ret = append(ret, choice.playerId)
-			}
+	case 0:
+		another = domain.SCISSORS
+	case 1:
+		another = domain.SCISSORS
+	case 2:
+		another = domain.PAPER
+	}
+	for _, choice := range playersChoices {
+		if choice.Input.Compare(another) == 0 {
+			ret = append(ret, choice.PlayerID)
 		}
 	}
 	return ret

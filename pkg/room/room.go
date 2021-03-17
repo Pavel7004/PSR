@@ -2,8 +2,10 @@ package room
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/pavel/PSR/pkg/domain"
+	. "github.com/pavel/PSR/pkg/winner-definer"
 	"github.com/rs/zerolog/log"
 )
 
@@ -12,16 +14,23 @@ var (
 )
 
 type Room struct {
-	config  RoomConfig
-	players []*domain.Player
-	active  bool
+	config        RoomConfig
+	players       []*domain.Player
+	combinations  []PlayerChoice
+	active        bool
+	stopCh        chan struct{}
+	stepMtx       *sync.Mutex
+	winnerDefiner *WinnerDefiner
 }
 
 func NewRoom(config RoomConfig) *Room {
 	return &Room{
-		config:  config,
-		active:  false,
-		players: make([]*domain.Player, 0, config.MaxPlayerCount),
+		config:        config,
+		active:        false,
+		players:       make([]*domain.Player, 0, config.MaxPlayerCount),
+		stopCh:        make(chan struct{}),
+		stepMtx:       new(sync.Mutex),
+		winnerDefiner: &WinnerDefiner{},
 	}
 }
 
@@ -45,4 +54,25 @@ func (room *Room) AddPlayer(player *domain.Player) error {
 
 func (room *Room) Run() {
 	log.Info().Msg("Room started")
+GAME_LOOP:
+	for {
+		select {
+		case <-room.stopCh:
+			log.Info().Msg("Room stopped")
+			break GAME_LOOP
+		default:
+			if len(room.combinations) == len(room.players) {
+				winners := room.winnerDefiner.GetWinners(room.combinations)
+				log.Info().Msgf("Winners: %v", winners)
+				break GAME_LOOP
+			}
+		}
+	}
+}
+
+func (room *Room) Choose(choice PlayerChoice) error {
+	room.stepMtx.Lock()
+	room.combinations = append(room.combinations, choice)
+	room.stepMtx.Unlock()
+	return nil
 }
