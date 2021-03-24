@@ -26,8 +26,9 @@ type Room struct {
 func NewRoom(config RoomConfig) *Room {
 	return &Room{
 		config:        config,
-		active:        false,
 		players:       make([]*domain.Player, 0, config.MaxPlayerCount),
+		combinations:  []PlayerChoice{},
+		active:        false,
 		stopCh:        make(chan struct{}),
 		stepMtx:       new(sync.Mutex),
 		winnerDefiner: &WinnerDefiner{},
