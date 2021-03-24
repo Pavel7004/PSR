@@ -1,28 +1,50 @@
 package winner_definer
 
 import (
+	"reflect"
 	"testing"
-	"time"
 
 	"github.com/pavel/PSR/pkg/domain"
-	"github.com/pavel/PSR/pkg/room"
 )
 
-func TestGetWinners(t *testing.T) {
-	room := room.NewRoom(room.RoomConfig{
-		StepTimeout:    5 * time.Second,
-		MaxPlayerCount: 3,
-		MaxScore:       5,
-		OnlyComputer:   false,
-	})
-	players := []*domain.Player{
-		domain.NewPlayer("1"),
-		domain.NewPlayer("2"),
-		domain.NewPlayer("3"),
+func TestWinnerDefiner_GetWinners(t *testing.T) {
+	type args struct {
+		playersChoices []PlayerChoice
 	}
-	for _, player := range players {
-		room.AddPlayer(player)
+	tests := []struct {
+		name string
+		wd   *WinnerDefiner
+		args args
+		want []string
+	}{
+		{
+			name: "Rocks vs Paper",
+			wd:   &WinnerDefiner{},
+			args: args{
+				[]PlayerChoice{
+					{
+						"Player 1",
+						domain.PAPER,
+					},
+					{
+						"Player 2",
+						domain.ROCK,
+					},
+					{
+						"Player 3",
+						domain.ROCK,
+					},
+				},
+			},
+			want: []string{"Player 1"},
+		},
 	}
-	room.AddPlayer(domain.NewPlayer("4"))
-	time.Sleep(2 * time.Second)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			wd := &WinnerDefiner{}
+			if got := wd.GetWinners(tt.args.playersChoices); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("WinnerDefiner.GetWinners() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
