@@ -17,18 +17,17 @@ func main() {
 	r := room.NewRoom(
 		room.RoomConfig{
 			5 * time.Second,
-			2,
+			3,
 			5,
 			false,
 		},
 	)
-	players := []string{"Test1", "Test2"}
+	players := []string{"Test1", "Test2", "Test3"}
 	for _, name := range players {
-		r.AddPlayer(domain.NewPlayer(name))
+		go r.AddPlayer(domain.NewPlayer(name))
 	}
 
 	for _, name := range players {
-		fmt.Printf("%s: ", name)
 		var input domain.Choice
 		fmt.Scanf("%d", &input)
 		r.Choose(winner_definer.PlayerChoice{
