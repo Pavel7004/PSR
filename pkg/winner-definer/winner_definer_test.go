@@ -64,6 +64,31 @@ func TestWinnerDefiner_GetWinners(t *testing.T) {
 			want: []string{"Player 2", "Player 4"},
 		},
 		{
+			name: "Rock vs scissors",
+			wd:   &WinnerDefiner{},
+			args: args{
+				[]PlayerChoice{
+					{
+						"Player 1",
+						domain.ROCK,
+					},
+					{
+						"Player 2",
+						domain.SCISSORS,
+					},
+					{
+						"Player 3",
+						domain.SCISSORS,
+					},
+					{
+						"Player 4",
+						domain.SCISSORS,
+					},
+				},
+			},
+			want: []string{"Player 1"},
+		},
+		{
 			name: "Mixed",
 			wd:   &WinnerDefiner{},
 			args: args{
