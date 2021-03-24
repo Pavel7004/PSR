@@ -38,6 +38,81 @@ func TestWinnerDefiner_GetWinners(t *testing.T) {
 			},
 			want: []string{"Player 1"},
 		},
+		{
+			name: "Scissors vs papers",
+			wd:   &WinnerDefiner{},
+			args: args{
+				[]PlayerChoice{
+					{
+						"Player 1",
+						domain.PAPER,
+					},
+					{
+						"Player 2",
+						domain.SCISSORS,
+					},
+					{
+						"Player 3",
+						domain.PAPER,
+					},
+					{
+						"Player 4",
+						domain.SCISSORS,
+					},
+				},
+			},
+			want: []string{"Player 2", "Player 4"},
+		},
+		{
+			name: "Mixed",
+			wd:   &WinnerDefiner{},
+			args: args{
+				[]PlayerChoice{
+					{
+						"Player 1",
+						domain.PAPER,
+					},
+					{
+						"Player 2",
+						domain.SCISSORS,
+					},
+					{
+						"Player 3",
+						domain.ROCK,
+					},
+					{
+						"Player 4",
+						domain.SCISSORS,
+					},
+				},
+			},
+			want: nil,
+		},
+		{
+			name: "The same",
+			wd:   &WinnerDefiner{},
+			args: args{
+				[]PlayerChoice{
+					{
+						"Player 1",
+						domain.SCISSORS,
+					},
+					{
+						"Player 2",
+						domain.SCISSORS,
+					},
+					{
+						"Player 3",
+						domain.SCISSORS,
+					},
+					{
+						"Player 4",
+						domain.SCISSORS,
+					},
+				},
+			},
+			want: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
