@@ -42,7 +42,9 @@ func (room *Room) AddPlayer(player *domain.Player) error {
 	if room.IsActive() {
 		return ErrGameAlreadyStarted
 	}
+	room.stepMtx.Lock()
 	room.players = append(room.players, player)
+	room.stepMtx.Unlock()
 	log.Info().Msgf("Player %s added to the room", player.ID)
 
 	if len(room.players) == room.config.MaxPlayerCount {
@@ -62,17 +64,21 @@ GAME_LOOP:
 			break GAME_LOOP
 		default:
 			if len(room.combinations) == len(room.players) {
-				winners := room.winnerDefiner.GetWinners(room.combinations)
-				log.Info().Msgf("Winners: %v", winners)
 				break GAME_LOOP
 			}
 		}
 	}
+	winners := room.winnerDefiner.GetWinners(room.combinations)
+	log.Info().Msgf("Winners: %v", winners)
 }
 
 func (room *Room) Choose(choice PlayerChoice) error {
 	room.stepMtx.Lock()
 	room.combinations = append(room.combinations, choice)
+	ChoicesCount := len(room.combinations) == len(room.players)
+	if ChoicesCount {
+		room.stopCh <- struct{}{}
+	}
 	room.stepMtx.Unlock()
 	return nil
 }
