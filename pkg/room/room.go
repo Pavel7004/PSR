@@ -19,6 +19,7 @@ type Room struct {
 	combinations  []PlayerChoice
 	active        bool
 	stopCh        chan struct{}
+	chooseCh      chan PlayerChoice
 	stepMtx       *sync.Mutex
 	winnerDefiner *WinnerDefiner
 }
@@ -30,6 +31,7 @@ func NewRoom(config RoomConfig) *Room {
 		combinations:  []PlayerChoice{},
 		active:        false,
 		stopCh:        make(chan struct{}),
+		chooseCh:      make(chan PlayerChoice),
 		stepMtx:       new(sync.Mutex),
 		winnerDefiner: &WinnerDefiner{},
 	}
@@ -45,13 +47,13 @@ func (room *Room) AddPlayer(player *domain.Player) error {
 	}
 	room.stepMtx.Lock()
 	room.players = append(room.players, player)
-	room.stepMtx.Unlock()
 	log.Info().Msgf("Player %s added to the room", player.ID)
 
 	if len(room.players) == room.config.MaxPlayerCount {
 		room.active = true
 		go room.Run()
 	}
+	room.stepMtx.Unlock()
 	return nil
 }
 
@@ -63,7 +65,8 @@ GAME_LOOP:
 		case <-room.stopCh:
 			log.Info().Msg("Room stopped")
 			break GAME_LOOP
-		default:
+		case choice := <-room.chooseCh:
+			room.combinations = append(room.combinations, choice)
 			if len(room.combinations) == len(room.players) {
 				break GAME_LOOP
 			}
@@ -73,13 +76,6 @@ GAME_LOOP:
 	log.Info().Msgf("Winners: %v", winners)
 }
 
-func (room *Room) Choose(choice PlayerChoice) error {
-	room.stepMtx.Lock()
-	room.combinations = append(room.combinations, choice)
-	ChoicesCount := len(room.combinations) == len(room.players)
-	if ChoicesCount {
-		room.stopCh <- struct{}{}
-	}
-	room.stepMtx.Unlock()
-	return nil
+func (room *Room) Choose(choice PlayerChoice) {
+	room.chooseCh <- choice
 }
