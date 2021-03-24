@@ -11,9 +11,9 @@ jobs:
       - checkout
 
       - run:
-        name: Fetch the dependenses
-        command: go mod tidy
+          name: Fetch the dependenses
+          command: go mod tidy
 
       - run:
-        name: Run tests
-        command: go test -race -cover -coverprofile coverage.out ./...
+          name: Run tests
+          command: go test -race -cover -coverprofile coverage.out ./...
