@@ -25,14 +25,3 @@ func (this Choice) Compare(another Choice) int {
 	}
 	return -1
 }
-
-// func main() {
-// 	PAPER.Compare(SCISSORS)
-// 	choices :=
-// 	choices = []Choise {
-// 		PAPER,
-// 		PAPER,
-// 		ROCK,
-// 	}
-// 	max(choices) => PAPER
-// }

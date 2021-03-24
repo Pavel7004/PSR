@@ -2,32 +2,6 @@ package domain
 
 import "testing"
 
-// 	got = PAPER.Compare(ROCK)
-// 	if got != 1 {
-// 		t.Errorf("PAPER <= ROCK (returned %d, expected 1)", got)
-// 	}
-// 	got = PAPER.Compare(PAPER)
-// 	if got != 0 {
-// 		t.Errorf("PAPER != PAPER (returned %d, expected 0)", got)
-// 	}
-// 	got = PAPER.Compare(SCISSORS)
-// 	if got != -1 {
-// 		t.Errorf("PAPER >= SCISSORS (returned %d, expected -1)", got)
-// 	}
-// 	got = SCISSORS.Compare(ROCK)
-// 	if got != -1 {
-// 		t.Errorf("SCISSORS >= ROCK (returned %d, expected -1)", got)
-// 	}
-// 	got = SCISSORS.Compare(PAPER)
-// 	if got != 1 {
-// 		t.Errorf("SCISSORS <= PAPER (returned %d, expected 1)", got)
-// 	}
-// 	got = SCISSORS.Compare(SCISSORS)
-// 	if got != 0 {
-// 		t.Errorf("SCISSORS != SCISSORS (returned %d, expected 0)", got)
-// 	}
-// }
-
 func TestChoice_Compare(t *testing.T) {
 	type args struct {
 		another Choice
@@ -86,7 +60,30 @@ func TestChoice_Compare(t *testing.T) {
 			},
 			-1,
 		},
-		// TODO: add scissors tests
+		{
+			"test scissors vs rock",
+			SCISSORS,
+			args{
+				another: ROCK,
+			},
+			-1,
+		},
+		{
+			"test scissors vs paper",
+			SCISSORS,
+			args{
+				another: PAPER,
+			},
+			1,
+		},
+		{
+			"test scissors vs scissors",
+			SCISSORS,
+			args{
+				another: SCISSORS,
+			},
+			0,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
