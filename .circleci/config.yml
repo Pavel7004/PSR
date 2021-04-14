@@ -3,9 +3,7 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.15
-
-      # - image: circleci/postgres:9.4
-
+      
     working_directory: /go/src/github.com/Pavel7004/PSR
     steps:
       - checkout
