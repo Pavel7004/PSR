@@ -2,12 +2,6 @@ package subscribe
 
 import "errors"
 
-// Broker
-
-// type Subscriber struct {
-// 	name string
-// }
-
 var (
 	ErrTopicNotPresent = errors.New("Topic not found")
 )
@@ -24,16 +18,26 @@ func NewPublisher() *Publisher {
 	}
 }
 
-// broker.Publish("topic1", channel)
-
-// broker.Subscribe(vasya, "topic1")
+func (p *Publisher) HasTopic(topic string) bool {
+	_, exist := p.topics[topic]
+	return exist
+}
 
 func (p *Publisher) Publish(topic string, msg interface{}) error {
-	if _, has := p.topics[topic]; !has {
+	if !p.HasTopic(topic) {
 		return ErrTopicNotPresent
 	}
 	for _, sub := range p.topics[topic] {
 		sub <- msg
+	}
+	return nil
+}
+
+func (p *Publisher) Subsciribe(sub Subscriber, topic string) error {
+	if p.HasTopic(topic) {
+		p.topics[topic] = append(p.topics[topic], sub)
+	} else {
+		p.topics[topic] = []Subscriber{sub}
 	}
 	return nil
 }
