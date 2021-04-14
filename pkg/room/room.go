@@ -68,12 +68,13 @@ GAME_LOOP:
 		case choice := <-room.chooseCh:
 			room.combinations = append(room.combinations, choice)
 			if len(room.combinations) == len(room.players) {
-				break GAME_LOOP
+				winners := room.winnerDefiner.GetWinners(room.combinations)
+				log.Info().Msgf("Winners: %v", winners)
+				room.combinations = make([]PlayerChoice, 0, room.config.MaxPlayerCount)
+				// break GAME_LOOP
 			}
 		}
 	}
-	winners := room.winnerDefiner.GetWinners(room.combinations)
-	log.Info().Msgf("Winners: %v", winners)
 }
 
 func (room *Room) Choose(choice PlayerChoice) {
