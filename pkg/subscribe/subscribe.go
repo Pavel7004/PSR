@@ -2,8 +2,9 @@ package subscribe
 
 import (
 	"errors"
-	"github.com/rs/zerolog/log"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -31,23 +32,46 @@ func (p *Publisher) Publish(topic string, msg interface{}) error {
 	if !p.HasTopic(topic) {
 		return ErrTopicNotPresent
 	}
-	send := make(chan interface{})
+	send := make(chan struct {
+		sub *Subscriber
+		msg interface{}
+	})
 	ok := make(chan struct{})
 	go func() {
-		msg := <-send
-		ok <- struct{}{}
+		for {
+			directions := <-send
+			if directions.sub == nil {
+				break
+			}
+			(*directions.sub) <- directions.msg
+			ok <- struct{}{}
+		}
 	}()
 	count := 0
 	for _, sub := range p.topics[topic] {
 		timer := time.NewTimer(45 * time.Second)
+		send <- struct {
+			sub *Subscriber
+			msg interface{}
+		}{
+			&sub,
+			msg,
+		}
 		select {
 		case <-timer.C:
 			count++
 		case <-ok:
 		}
 	}
+	send <- struct {
+		sub *Subscriber
+		msg interface{}
+	}{
+		nil,
+		nil,
+	}
 	if count != 0 {
-		log.Info().Msgf("Not every sub on topic \"%v\" accepted msg = %v", topic, msg)
+		log.Info().Msgf("%d subs on topic \"%v\" accepted msg = %v", count, topic, msg)
 	}
 	return nil
 }
