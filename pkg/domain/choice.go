@@ -9,19 +9,15 @@ const (
 )
 
 func (this Choice) Compare(another Choice) int {
-	if this == ROCK && another == SCISSORS ||
-		this == SCISSORS && another == ROCK {
-		res := (int(another) - int(this))
-		if res > 0 {
-			return 1
-		}
-		return -1
-	}
+	const choicesCount = 3
 	if this == another {
 		return 0
 	}
-	if this > another {
-		return 1
+	thisInt := int(this)
+	anotherInt := int(another)
+	winningChoice := (thisInt + 1) % choicesCount
+	if winningChoice == anotherInt {
+		return -1
 	}
-	return -1
+	return 1
 }
