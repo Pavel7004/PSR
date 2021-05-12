@@ -10,17 +10,18 @@ import (
 	. "github.com/pavel/PSR/pkg/winner-definer"
 )
 
-func TestRoom_IsActive(t *testing.T) {
+func TestRoom_AddPlayer(t *testing.T) {
 	type fields struct {
 		config        RoomConfig
 		players       []*domain.Player
 		combinations  []PlayerChoice
-		active        bool
+		state         State
 		stopCh        chan struct{}
 		chooseCh      chan PlayerChoice
 		stepMtx       *sync.Mutex
 		winnerDefiner *WinnerDefiner
 	}
+<<<<<<< Updated upstream
 	tests := []struct {
 		name   string
 		fields fields
@@ -54,37 +55,24 @@ func TestRoom_IsActive(t *testing.T) {
 			},
 			want: false,
 		},
+=======
+	testRoom := Room{
+		RoomConfig{
+			5 * time.Minute,
+			5,
+			5,
+			false,
+		},
+		make([]*domain.Player, 0, 5),
+		[]PlayerChoice{},
+		nil,
+		nil,
+		nil,
+		new(sync.Mutex),
+		&WinnerDefiner{},
+>>>>>>> Stashed changes
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			room := &Room{
-				config:        tt.fields.config,
-				players:       tt.fields.players,
-				combinations:  tt.fields.combinations,
-				active:        tt.fields.active,
-				stopCh:        tt.fields.stopCh,
-				chooseCh:      tt.fields.chooseCh,
-				stepMtx:       tt.fields.stepMtx,
-				winnerDefiner: tt.fields.winnerDefiner,
-			}
-			if got := room.IsActive(); got != tt.want {
-				t.Errorf("Room.IsActive() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRoom_AddPlayer(t *testing.T) {
-	type fields struct {
-		config        RoomConfig
-		players       []*domain.Player
-		combinations  []PlayerChoice
-		active        bool
-		stopCh        chan struct{}
-		chooseCh      chan PlayerChoice
-		stepMtx       *sync.Mutex
-		winnerDefiner *WinnerDefiner
-	}
+	testRoom.state = NewPlayingState(&testRoom)
 	type args struct {
 		player *domain.Player
 	}
@@ -114,30 +102,23 @@ func TestRoom_AddPlayer(t *testing.T) {
 		},
 	}
 	tests := []struct {
+<<<<<<< Updated upstream
 		name                string
 		fields              fields
 		args                args
 		expectedPlayers     []*domain.Player
 		expectedRoomStarted bool
 		wantErr             bool
+=======
+		name         string
+		structObject Room
+		args         args
+		wantErr      bool
+>>>>>>> Stashed changes
 	}{
 		{
-			name: "Test adding player in active game",
-			fields: fields{
-				RoomConfig{
-					5 * time.Minute,
-					5,
-					5,
-					false,
-				},
-				make([]*domain.Player, 0, 5),
-				[]PlayerChoice{},
-				true,
-				nil,
-				nil,
-				new(sync.Mutex),
-				&WinnerDefiner{},
-			},
+			name:         "Test adding player in active game",
+			structObject: testRoom,
 			args: args{
 				player: &domain.Player{
 					ID: "testPlayer",
@@ -203,16 +184,7 @@ func TestRoom_AddPlayer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			room := &Room{
-				config:        tt.fields.config,
-				players:       tt.fields.players,
-				combinations:  tt.fields.combinations,
-				active:        tt.fields.active,
-				stopCh:        tt.fields.stopCh,
-				chooseCh:      tt.fields.chooseCh,
-				stepMtx:       tt.fields.stepMtx,
-				winnerDefiner: tt.fields.winnerDefiner,
-			}
+			room := tt.structObject
 			if err := room.AddPlayer(tt.args.player); (err != nil) != tt.wantErr {
 				t.Errorf("Room.AddPlayer() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -222,78 +194,6 @@ func TestRoom_AddPlayer(t *testing.T) {
 			if room.active != tt.expectedRoomStarted {
 				t.Errorf("Room.AddPlayer() error %v: unexpected room state", tt.name)
 			}
-		})
-	}
-}
-
-func TestRoom_Run(t *testing.T) {
-	type fields struct {
-		config        RoomConfig
-		players       []*domain.Player
-		combinations  []PlayerChoice
-		active        bool
-		stopCh        chan struct{}
-		chooseCh      chan PlayerChoice
-		stepMtx       *sync.Mutex
-		winnerDefiner *WinnerDefiner
-	}
-	tests := []struct {
-		name   string
-		fields fields
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			room := &Room{
-				config:        tt.fields.config,
-				players:       tt.fields.players,
-				combinations:  tt.fields.combinations,
-				active:        tt.fields.active,
-				stopCh:        tt.fields.stopCh,
-				chooseCh:      tt.fields.chooseCh,
-				stepMtx:       tt.fields.stepMtx,
-				winnerDefiner: tt.fields.winnerDefiner,
-			}
-			room.Run()
-		})
-	}
-}
-
-func TestRoom_Choose(t *testing.T) {
-	type fields struct {
-		config        RoomConfig
-		players       []*domain.Player
-		combinations  []PlayerChoice
-		active        bool
-		stopCh        chan struct{}
-		chooseCh      chan PlayerChoice
-		stepMtx       *sync.Mutex
-		winnerDefiner *WinnerDefiner
-	}
-	type args struct {
-		choice PlayerChoice
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			room := &Room{
-				config:        tt.fields.config,
-				players:       tt.fields.players,
-				combinations:  tt.fields.combinations,
-				active:        tt.fields.active,
-				stopCh:        tt.fields.stopCh,
-				chooseCh:      tt.fields.chooseCh,
-				stepMtx:       tt.fields.stepMtx,
-				winnerDefiner: tt.fields.winnerDefiner,
-			}
-			room.Choose(tt.args.choice)
 		})
 	}
 }

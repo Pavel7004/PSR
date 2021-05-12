@@ -17,7 +17,7 @@ type Room struct {
 	config        RoomConfig
 	players       []*domain.Player
 	combinations  []PlayerChoice
-	active        bool
+	state         State
 	stopCh        chan struct{}
 	chooseCh      chan PlayerChoice
 	stepMtx       *sync.Mutex
@@ -25,36 +25,22 @@ type Room struct {
 }
 
 func NewRoom(config RoomConfig) *Room {
-	return &Room{
+	room := Room{
 		config:        config,
 		players:       make([]*domain.Player, 0, config.MaxPlayerCount),
 		combinations:  []PlayerChoice{},
-		active:        false,
+		state:         nil,
 		stopCh:        make(chan struct{}),
 		chooseCh:      make(chan PlayerChoice),
 		stepMtx:       new(sync.Mutex),
 		winnerDefiner: &WinnerDefiner{},
 	}
-}
-
-func (room *Room) IsActive() bool {
-	return room.active
+	room.state = NewWaitingState(&room)
+	return &room
 }
 
 func (room *Room) AddPlayer(player *domain.Player) error {
-	if room.IsActive() {
-		return ErrGameAlreadyStarted
-	}
-	room.stepMtx.Lock()
-	room.players = append(room.players, player)
-	log.Info().Msgf("Player %s added to the room", player.ID)
-
-	if len(room.players) == room.config.MaxPlayerCount {
-		room.active = true
-		go room.Run()
-	}
-	room.stepMtx.Unlock()
-	return nil
+	return room.state.AddPlayer(player)
 }
 
 func (room *Room) Run() {
