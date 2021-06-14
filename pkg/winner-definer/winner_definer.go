@@ -6,11 +6,6 @@ import (
 
 type WinnerDefiner struct{}
 
-type PlayerChoice struct {
-	PlayerID string
-	Input    domain.Choice
-}
-
 func (wd *WinnerDefiner) GetWinners(playersChoices []PlayerChoice) []string {
 	const numberOfChoices = 3
 	count := [numberOfChoices]int{0}
