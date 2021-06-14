@@ -12,6 +12,7 @@ var (
 
 type ISubscriber interface {
 	Send(interface{}) error
+	Receive() interface{}
 }
 
 type Subscriber struct {
@@ -55,6 +56,7 @@ func (p *Publisher) Publish(topic string, msg interface{}) error {
 	for _, sub := range p.topics[topic] {
 		if err := sub.Send(msg); err != nil {
 			log.Error().Err(err).Msgf("publish error, topic: %s, msg: %v", topic, msg)
+			return err
 		}
 	}
 	return nil
