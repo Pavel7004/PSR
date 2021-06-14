@@ -2,6 +2,7 @@ package room
 
 import (
 	"github.com/pavel/PSR/pkg/domain"
+	. "github.com/pavel/PSR/pkg/winner-definer"
 	"github.com/rs/zerolog/log"
 )
 
@@ -20,8 +21,14 @@ func (s *WaitingState) AddPlayer(player *domain.Player) error {
 	s.room.players = append(s.room.players, player)
 	log.Info().Msgf("Player %s added to the room", player.ID)
 	if len(s.room.players) == s.room.config.MaxPlayerCount {
-		go s.room.Run()
+		s.room.state = NewPlayingState(s.room)
+		log.Info().Msg("Room started")
+		s.room.observer.Publish("room_started", struct{}{})
 	}
 	s.room.stepMtx.Unlock()
 	return nil
+}
+
+func (s *WaitingState) Choose(choice *PlayerChoice) error {
+	return ErrGameNotStarted
 }

@@ -10,6 +10,8 @@ import (
 	. "github.com/pavel/PSR/pkg/winner-definer"
 )
 
+//! testify
+
 func TestRoom_AddPlayer(t *testing.T) {
 	type fields struct {
 		config        RoomConfig
@@ -21,41 +23,6 @@ func TestRoom_AddPlayer(t *testing.T) {
 		stepMtx       *sync.Mutex
 		winnerDefiner *WinnerDefiner
 	}
-<<<<<<< Updated upstream
-	tests := []struct {
-		name   string
-		fields fields
-		want   bool
-	}{
-		{
-			name: "Test Active",
-			fields: fields{
-				RoomConfig{},
-				nil,
-				[]PlayerChoice{},
-				true,
-				nil,
-				nil,
-				nil,
-				nil,
-			},
-			want: true,
-		},
-		{
-			name: "Test Unactive",
-			fields: fields{
-				RoomConfig{},
-				nil,
-				[]PlayerChoice{},
-				false,
-				nil,
-				nil,
-				nil,
-				nil,
-			},
-			want: false,
-		},
-=======
 	testRoom := Room{
 		RoomConfig{
 			5 * time.Minute,
@@ -67,10 +34,8 @@ func TestRoom_AddPlayer(t *testing.T) {
 		[]PlayerChoice{},
 		nil,
 		nil,
-		nil,
 		new(sync.Mutex),
 		&WinnerDefiner{},
->>>>>>> Stashed changes
 	}
 	testRoom.state = NewPlayingState(&testRoom)
 	type args struct {
@@ -101,97 +66,104 @@ func TestRoom_AddPlayer(t *testing.T) {
 			},
 		},
 	}
+
+
+	initTestRoomFn := func(config RoomConfig, isRunning bool, players []*domain.Player) *Room {
+				room := NewRoom(config)
+				if isRunning {
+					room.state = NewPlayingState(room)
+				}
+				for i := 0; i < len(players); i++ {
+					room.AddPlayer(players[i])
+				}
+				return room
+	}
 	tests := []struct {
-<<<<<<< Updated upstream
 		name                string
-		fields              fields
+		roomConfig          RoomConfig
+		isRunning           bool
+		players             []*domain.Player
+		initFn              func(config RoomConfig, isRunning bool, players []*domain.Player) *Room
 		args                args
-		expectedPlayers     []*domain.Player
 		expectedRoomStarted bool
 		wantErr             bool
-=======
-		name         string
-		structObject Room
-		args         args
-		wantErr      bool
->>>>>>> Stashed changes
 	}{
 		{
-			name:         "Test adding player in active game",
-			structObject: testRoom,
+			name: "Test adding player in active game",
+			roomConfig: RoomConfig{
+				2 * time.Second,
+				2,
+				5,
+				false,
+			},
+			isRunning: true,
+			players: []*domain.Player{
+				{
+					ID: "Existing player 1",
+				},
+				{
+					ID: "Existing player 2",
+				},
+			},
+			initFn: initTestRoomFn,
 			args: args{
-				player: &domain.Player{
+				&domain.Player{
 					ID: "testPlayer",
 				},
 			},
-			expectedPlayers:     testPlayers["Test adding player in active game"],
-			expectedRoomStarted: true,
 			wantErr:             true,
 		},
 		{
 			name: "Adding player",
-			fields: fields{
-				RoomConfig{
-					5 * time.Minute,
-					5,
-					5,
-					false,
-				},
-				make([]*domain.Player, 0, 5),
-				[]PlayerChoice{},
+			roomConfig: RoomConfig{
+				2 * time.Second,
+				2,
+				5,
 				false,
-				nil,
-				nil,
-				new(sync.Mutex),
-				&WinnerDefiner{},
 			},
+			isRunning: false,
+			players: []*domain.Player{},
+			initFn: initTestRoomFn,
 			args: args{
-				player: testPlayers["Adding player"][0],
+				&domain.Player{
+					ID: "new Player1",
+				},
 			},
-			expectedPlayers:     testPlayers["Adding player"],
-			expectedRoomStarted: false,
 			wantErr:             false,
 		},
 		{
 			name: "Adding last player",
-			fields: fields{
-				RoomConfig{
-					5 * time.Minute,
-					5,
-					5,
-					false,
-				},
-				[]*domain.Player{
-					testPlayers["Adding last player"][0],
-					testPlayers["Adding last player"][1],
-					testPlayers["Adding last player"][2],
-					testPlayers["Adding last player"][3],
-				},
-				[]PlayerChoice{},
+			roomConfig: RoomConfig{
+				2 * time.Second,
+				2,
+				5,
 				false,
-				make(chan struct{}),
-				make(chan PlayerChoice),
-				new(sync.Mutex),
-				&WinnerDefiner{},
 			},
+			isRunning: false,
+			players: []*domain.Player{
+				{
+					ID: "Existing player 1",
+				},
+			},
+			initFn: initTestRoomFn,
 			args: args{
-				player: testPlayers["Adding last player"][4],
+				&domain.Player{
+					ID: "New Player1",
+				},
 			},
-			expectedPlayers:     testPlayers["Adding last player"],
-			expectedRoomStarted: true,
 			wantErr:             false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			room := tt.structObject
+			room := tt.initFn(tt.roomConfig, tt.isRunning, tt.players)
 			if err := room.AddPlayer(tt.args.player); (err != nil) != tt.wantErr {
 				t.Errorf("Room.AddPlayer() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !reflect.DeepEqual(testPlayers[tt.name], room.players) {
 				t.Errorf("Room.AddPlayer() error adding players got = %v, expected = %v", room.players, testPlayers[tt.name])
 			}
-			if room.active != tt.expectedRoomStarted {
+			if (reflect.TypeOf(room.state).String() == "PlayingState") && tt.expectedRoomStarted {
 				t.Errorf("Room.AddPlayer() error %v: unexpected room state", tt.name)
 			}
 		})
