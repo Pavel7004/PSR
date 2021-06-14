@@ -15,11 +15,11 @@ var (
 )
 
 type Room struct {
-	config       RoomConfig
-	players      []*domain.Player
-	combinations []PlayerChoice
-	state        State
-	observer 	 *subscribe.Publisher
+	config        RoomConfig
+	players       []*domain.Player
+	combinations  []PlayerChoice
+	state         State
+	observer      *subscribe.Publisher
 	stepMtx       *sync.Mutex
 	winnerDefiner *WinnerDefiner
 }
@@ -30,7 +30,7 @@ func NewRoom(config RoomConfig, obs *subscribe.Publisher) *Room {
 		players:       make([]*domain.Player, 0, config.MaxPlayerCount),
 		combinations:  []PlayerChoice{},
 		state:         nil,
-		observer: 	   obs,
+		observer:      obs,
 		stepMtx:       new(sync.Mutex),
 		winnerDefiner: &WinnerDefiner{},
 	}
@@ -42,6 +42,6 @@ func (room *Room) AddPlayer(player *domain.Player) error {
 	return room.state.AddPlayer(player)
 }
 
-func (room *Room) Choose(choice *PlayerChoice) {
-	room.state.Choose(choice)
+func (room *Room) Choose(choice *PlayerChoice) error {
+	return room.state.Choose(choice)
 }
