@@ -12,9 +12,7 @@ func TestNewPublisher(t *testing.T) {
 	}{
 		{
 			name: "Test creating new publisher",
-			want: &Publisher{
-				make(map[string][]ISubscriber),
-			},
+			want: &Publisher{make(map[string][]ISubscriber)},
 		},
 	}
 	for _, tt := range tests {
@@ -47,9 +45,7 @@ func TestPublisher_HasTopic(t *testing.T) {
 					"topik 2": {},
 				},
 			},
-			args: args{
-				topic: "topik 1",
-			},
+			args: args{topic: "topik 1"},
 			want: true,
 		},
 		{
@@ -60,17 +56,13 @@ func TestPublisher_HasTopic(t *testing.T) {
 					"topik 2": {},
 				},
 			},
-			args: args{
-				topic: "topik 3",
-			},
+			args: args{topic: "topik 3"},
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &Publisher{
-				topics: tt.fields.topics,
-			}
+			p := &Publisher{topics: tt.fields.topics}
 			if got := p.HasTopic(tt.args.topic); got != tt.want {
 				t.Errorf("Publisher.HasTopic() = %v, want %v", got, tt.want)
 			}
@@ -104,29 +96,16 @@ func TestPublisher_Publish(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name: "Topic not exist",
-			fields: fields{
-				map[string][]ISubscriber{
-					"topic 1": {},
-				},
-			},
-			args: args{
-				"Some topic",
-				"msg",
-			},
-			wantErr: true,
+			name:     "Topic not exist",
+			fields:   fields{map[string][]ISubscriber{"topic 1": {}}},
+			args:     args{"Some topic", "msg"},
+			expected: "",
+			wantErr:  true,
 		},
 		{
-			name: "Topic exists, msg received",
-			fields: fields{
-				map[string][]ISubscriber{
-					"topic 1": testSubscribers["Topic exists, msg received"],
-				},
-			},
-			args: args{
-				"topic 1",
-				"msg",
-			},
+			name:     "Topic exists, msg received",
+			fields:   fields{map[string][]ISubscriber{"topic 1": testSubscribers["Topic exists, msg received"]}},
+			args:     args{"topic 1", "msg"},
 			expected: "msg",
 			wantErr:  false,
 		},
@@ -137,10 +116,7 @@ func TestPublisher_Publish(t *testing.T) {
 					"topic 1": testSubscribers["Topic exists, two subs, msg received"],
 				},
 			},
-			args: args{
-				"topic 1",
-				"msg",
-			},
+			args:     args{"topic 1", "msg"},
 			expected: "msg",
 			wantErr:  false,
 		},
@@ -188,62 +164,25 @@ func TestPublisher_Subscribe(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name: "topic exist",
-			fields: fields{
-				topics: map[string][]ISubscriber{
-					"topic 1": {},
-					"topic 2": {
-						existingSubscriber,
-					},
-				},
-			},
-			args: args{
-				addingSubscriber,
-				"topic 1",
-			},
-			expected: []ISubscriber{
-				addingSubscriber,
-			},
-			wantErr: false,
+			name:     "topic exist",
+			fields:   fields{topics: map[string][]ISubscriber{"topic 1": {}, "topic 2": {existingSubscriber}}},
+			args:     args{addingSubscriber, "topic 1"},
+			expected: []ISubscriber{addingSubscriber},
+			wantErr:  false,
 		},
 		{
-			name: "topic exist, second subscriber",
-			fields: fields{
-				topics: map[string][]ISubscriber{
-					"topic 1": {},
-					"topic 2": {
-						existingSubscriber,
-					},
-				},
-			},
-			args: args{
-				addingSubscriber,
-				"topic 2",
-			},
-			expected: []ISubscriber{
-				existingSubscriber,
-				addingSubscriber,
-			},
-			wantErr: false,
+			name:     "topic exist, second subscriber",
+			fields:   fields{topics: map[string][]ISubscriber{"topic 1": {}, "topic 2": {existingSubscriber}}},
+			args:     args{addingSubscriber, "topic 2"},
+			expected: []ISubscriber{existingSubscriber, addingSubscriber},
+			wantErr:  false,
 		},
 		{
-			name: "topic is not exist, one subscriber",
-			fields: fields{
-				topics: map[string][]ISubscriber{
-					"topic 1": {},
-					"topic 2": {
-						existingSubscriber,
-					},
-				},
-			},
-			args: args{
-				addingSubscriber,
-				"topic 3",
-			},
-			expected: []ISubscriber{
-				addingSubscriber,
-			},
-			wantErr: false,
+			name:     "topic is not exist, one subscriber",
+			fields:   fields{topics: map[string][]ISubscriber{"topic 1": {}, "topic 2": {existingSubscriber}}},
+			args:     args{addingSubscriber, "topic 3"},
+			expected: []ISubscriber{addingSubscriber},
+			wantErr:  false,
 		},
 	}
 	for _, tt := range tests {
