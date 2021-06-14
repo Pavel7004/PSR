@@ -19,9 +19,9 @@ type Subscriber struct {
 	msgCh chan interface{}
 }
 
-func NewSubscriber() *Subscriber {
+func NewSubscriber(bufferSize int) *Subscriber {
 	return &Subscriber{
-		make(chan interface{}),
+		make(chan interface{}, bufferSize),
 	}
 }
 

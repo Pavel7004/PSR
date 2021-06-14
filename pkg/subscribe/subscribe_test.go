@@ -89,11 +89,11 @@ func TestPublisher_Publish(t *testing.T) {
 	testSubscribers := map[string][]ISubscriber{
 		"Topic not exist": {},
 		"Topic exists, msg received": {
-			NewSubscriber(),
+			NewSubscriber(0),
 		},
 		"Topic exists, two subs, msg received": {
-			NewSubscriber(),
-			NewSubscriber(),
+			NewSubscriber(0),
+			NewSubscriber(0),
 		},
 	}
 	tests := []struct {
@@ -178,8 +178,8 @@ func TestPublisher_Subscribe(t *testing.T) {
 		sub   *Subscriber
 		topic string
 	}
-	addingSubscriber := NewSubscriber()
-	existingSubscriber := NewSubscriber()
+	addingSubscriber := NewSubscriber(0)
+	existingSubscriber := NewSubscriber(0)
 	tests := []struct {
 		name     string
 		fields   fields
