@@ -1,7 +1,7 @@
 package domain
 
 type Player struct {
-	ID string
+	ID 		string
 }
 
 func NewPlayer(id string) *Player {
