@@ -148,6 +148,16 @@ func TestRoom_Choose(t *testing.T) {
 			wantErr:          false,
 		},
 		{
+			name:             "Choose with player not present",
+			config:           RoomConfig{2 * time.Second, 2, 5, false},
+			initFn:           initTestRoomFn,
+			initCombinations: []PlayerChoice{},
+			isStarted:        true,
+			winners:          nil,
+			args:             args{&PlayerChoice{PlayerID: "Player1", Input: 0}},
+			wantErr:          true,
+		},
+		{
 			name:             "Last player choose",
 			config:           RoomConfig{2 * time.Second, 2, 5, false},
 			initFn:           initTestRoomFn,
@@ -155,6 +165,16 @@ func TestRoom_Choose(t *testing.T) {
 			isStarted:        true,
 			winners:          []string{},
 			args:             args{&PlayerChoice{PlayerID: "TestPlayer2", Input: 0}},
+			wantErr:          false,
+		},
+		{
+			name:             "Last player choose, check winners",
+			config:           RoomConfig{2 * time.Second, 2, 5, false},
+			initFn:           initTestRoomFn,
+			initCombinations: []PlayerChoice{{PlayerID: "TestPlayer1", Input: 0}},
+			isStarted:        true,
+			winners:          []string{"TestPlayer2"},
+			args:             args{&PlayerChoice{PlayerID: "TestPlayer2", Input: 1}},
 			wantErr:          false,
 		},
 	}
@@ -167,9 +187,17 @@ func TestRoom_Choose(t *testing.T) {
 				t.Errorf("Room.Choose() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if tt.winners != nil {
-				if winners := sub.Receive(); reflect.DeepEqual(winners.([]string), tt.winners) {
-					t.Errorf("Room.Choose() wrong winners got = %v, expected = %v", winners, tt.winners)
+				msg, ok := sub.Receive().([]string)
+				if !ok {
+					t.Errorf("Room.Choose() wrong winners message type: got = %T, expected = %T", msg, tt.winners)
 				}
+				if !reflect.DeepEqual(msg, tt.winners) {
+					t.Errorf("Room.Choose() wrong winners got = %v, expected = %v", msg, tt.winners)
+				}
+			}
+		})
+	}
+}
 
 func TestRoom_HasPlayer(t *testing.T) {
 	initTestRoomFn := func(config RoomConfig, players []*domain.Player) *Room {
