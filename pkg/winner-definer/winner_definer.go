@@ -1,42 +1,36 @@
 package winner_definer
 
-import (
-	"github.com/pavel/PSR/pkg/domain"
-)
+import "github.com/pavel/PSR/pkg/domain"
 
 type WinnerDefiner struct{}
 
 func (wd *WinnerDefiner) GetWinners(playersChoices []PlayerChoice) []string {
-	const numberOfChoices = 3
-	count := [numberOfChoices]int{0}
+	count := map[domain.Choice]int{
+		domain.ROCK:     0,
+		domain.PAPER:    0,
+		domain.SCISSORS: 0,
+	}
 	for _, choice := range playersChoices {
-		count[int(choice.Input)]++
+		count[choice.Input]++
 	}
 	missing := -1
-	missingKol := 0
-	for i := 0; i < numberOfChoices; i++ {
-		if count[i] == 0 {
-			missing = i
-			missingKol++
+	for key, value := range count {
+		if value == 0 {
+			if missing != -1 {
+				return nil
+			}
+			missing = int(key)
 		}
 	}
-	if missingKol != 1 {
+	if missing == -1 {
 		return nil
 	}
-	var another domain.Choice
-	switch missing {
-	case 0:
-		another = domain.SCISSORS
-	case 1:
-		another = domain.ROCK
-	case 2:
-		another = domain.PAPER
-	}
-	ret := []string{}
+	winningPiece := domain.Choice((missing + 2) % 3)
+	winners := []string{}
 	for _, choice := range playersChoices {
-		if choice.Input.Compare(another) == 0 {
-			ret = append(ret, choice.PlayerID)
+		if choice.Input.Compare(winningPiece) == 0 {
+			winners = append(winners, choice.PlayerID)
 		}
 	}
-	return ret
+	return winners
 }
