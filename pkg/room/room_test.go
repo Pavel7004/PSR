@@ -170,6 +170,47 @@ func TestRoom_Choose(t *testing.T) {
 				if winners := sub.Receive(); reflect.DeepEqual(winners.([]string), tt.winners) {
 					t.Errorf("Room.Choose() wrong winners got = %v, expected = %v", winners, tt.winners)
 				}
+
+func TestRoom_HasPlayer(t *testing.T) {
+	initTestRoomFn := func(config RoomConfig, players []*domain.Player) *Room {
+		pub := subscribe.NewPublisher()
+		room := NewRoom(config, pub)
+		room.players = players
+		return room
+	}
+	type args struct {
+		playerName string
+	}
+	tests := []struct {
+		name    string
+		config  RoomConfig
+		initFn  func(config RoomConfig, players []*domain.Player) *Room
+		players []*domain.Player
+		args    args
+		want    bool
+	}{
+		{
+			name:    "Has player",
+			config:  RoomConfig{2 * time.Second, 2, 5, false},
+			initFn:  initTestRoomFn,
+			players: []*domain.Player{{ID: "Player1"}},
+			args:    args{playerName: "Player1"},
+			want:    true,
+		},
+		{
+			name:    "player in not in the room",
+			config:  RoomConfig{2 * time.Second, 2, 5, false},
+			initFn:  initTestRoomFn,
+			players: []*domain.Player{{ID: "Player1"}},
+			args:    args{playerName: "Player2"},
+			want:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			room := tt.initFn(tt.config, tt.players)
+			if got := room.HasPlayer(tt.args.playerName); got != tt.want {
+				t.Errorf("Room.HasPlayer() = %v, want %v", got, tt.want)
 			}
 		})
 	}

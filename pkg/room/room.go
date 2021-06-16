@@ -38,6 +38,15 @@ func NewRoom(config RoomConfig, obs *subscribe.Publisher) *Room {
 	return &room
 }
 
+func (room *Room) HasPlayer(playerName string) bool {
+	for _, pl := range room.players {
+		if pl.GetID() == playerName {
+			return true
+		}
+	}
+	return false
+}
+
 func (room *Room) AddPlayer(player *domain.Player) error {
 	return room.state.AddPlayer(player)
 }
