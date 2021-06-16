@@ -17,13 +17,13 @@ func (wd *WinnerDefiner) GetWinners(playersChoices []PlayerChoice) []string {
 	for key, value := range count {
 		if value == 0 {
 			if missing != -1 {
-				return nil
+				return []string{}
 			}
 			missing = int(key)
 		}
 	}
 	if missing == -1 {
-		return nil
+		return []string{}
 	}
 	winningPiece := domain.Choice((missing + 2) % 3)
 	winners := []string{}
