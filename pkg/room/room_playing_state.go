@@ -8,7 +8,6 @@ import (
 
 type PlayingState struct {
 	room *Room
-
 }
 
 func NewPlayingState(r *Room) *PlayingState {
@@ -22,6 +21,9 @@ func (s *PlayingState) AddPlayer(player *domain.Player) error {
 }
 
 func (s *PlayingState) Choose(choice *PlayerChoice) error {
+	if !s.room.HasPlayer(choice.PlayerID) {
+		return ErrPlayerNotPresent
+	}
 	s.room.combinations = append(s.room.combinations, *choice)
 	if len(s.room.combinations) == len(s.room.players) {
 		winners := s.room.winnerDefiner.GetWinners(s.room.combinations)

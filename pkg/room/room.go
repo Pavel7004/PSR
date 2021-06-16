@@ -12,6 +12,7 @@ import (
 var (
 	ErrGameAlreadyStarted = errors.New("The game is already started!")
 	ErrGameNotStarted     = errors.New("The game isn't started!")
+	ErrPlayerNotPresent   = errors.New("The player isn't exist in the room")
 )
 
 type Room struct {
