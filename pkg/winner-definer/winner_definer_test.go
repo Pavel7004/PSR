@@ -111,7 +111,7 @@ func TestWinnerDefiner_GetWinners(t *testing.T) {
 					},
 				},
 			},
-			want: nil,
+			want: []string{},
 		},
 		{
 			name: "The same",
@@ -136,7 +136,7 @@ func TestWinnerDefiner_GetWinners(t *testing.T) {
 					},
 				},
 			},
-			want: nil,
+			want: []string{},
 		},
 	}
 	for _, tt := range tests {

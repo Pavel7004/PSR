@@ -10,7 +10,10 @@ func TestNewPublisher(t *testing.T) {
 		name string
 		want *Publisher
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Test creating new publisher",
+			want: &Publisher{make(map[string][]ISubscriber)},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -23,7 +26,7 @@ func TestNewPublisher(t *testing.T) {
 
 func TestPublisher_HasTopic(t *testing.T) {
 	type fields struct {
-		topics map[string][]Subscriber
+		topics map[string][]ISubscriber
 	}
 	type args struct {
 		topic string
@@ -37,35 +40,29 @@ func TestPublisher_HasTopic(t *testing.T) {
 		{
 			name: "Has topic",
 			fields: fields{
-				topics: map[string][]Subscriber{
+				topics: map[string][]ISubscriber{
 					"topik 1": {},
 					"topik 2": {},
 				},
 			},
-			args: args{
-				topic: "topik 1",
-			},
+			args: args{topic: "topik 1"},
 			want: true,
 		},
 		{
 			name: "Hasn't topic",
 			fields: fields{
-				topics: map[string][]Subscriber{
+				topics: map[string][]ISubscriber{
 					"topik 1": {},
 					"topik 2": {},
 				},
 			},
-			args: args{
-				topic: "topik 3",
-			},
+			args: args{topic: "topik 3"},
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &Publisher{
-				topics: tt.fields.topics,
-			}
+			p := &Publisher{topics: tt.fields.topics}
 			if got := p.HasTopic(tt.args.topic); got != tt.want {
 				t.Errorf("Publisher.HasTopic() = %v, want %v", got, tt.want)
 			}
@@ -75,20 +72,20 @@ func TestPublisher_HasTopic(t *testing.T) {
 
 func TestPublisher_Publish(t *testing.T) {
 	type fields struct {
-		topics map[string][]Subscriber
+		topics map[string][]ISubscriber
 	}
 	type args struct {
 		topic string
 		msg   interface{}
 	}
-	testSubscribers := map[string][]Subscriber{
+	testSubscribers := map[string][]ISubscriber{
 		"Topic not exist": {},
 		"Topic exists, msg received": {
-			make(Subscriber),
+			NewSubscriber(0),
 		},
 		"Topic exists, two subs, msg received": {
-			make(Subscriber),
-			make(Subscriber),
+			NewSubscriber(0),
+			NewSubscriber(0),
 		},
 	}
 	tests := []struct {
@@ -99,43 +96,27 @@ func TestPublisher_Publish(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name: "Topic not exist",
-			fields: fields{
-				map[string][]Subscriber{
-					"topic 1": {},
-				},
-			},
-			args: args{
-				"Some topic",
-				"msg",
-			},
-			wantErr: true,
+			name:     "Topic not exist",
+			fields:   fields{map[string][]ISubscriber{"topic 1": {}}},
+			args:     args{"Some topic", "msg"},
+			expected: "",
+			wantErr:  true,
 		},
 		{
-			name: "Topic exists, msg received",
-			fields: fields{
-				map[string][]Subscriber{
-					"topic 1": testSubscribers["Topic exists, msg received"],
-				},
-			},
-			args: args{
-				"topic 1",
-				"msg",
-			},
+			name:     "Topic exists, msg received",
+			fields:   fields{map[string][]ISubscriber{"topic 1": testSubscribers["Topic exists, msg received"]}},
+			args:     args{"topic 1", "msg"},
 			expected: "msg",
 			wantErr:  false,
 		},
 		{
 			name: "Topic exists, two subs, msg received",
 			fields: fields{
-				map[string][]Subscriber{
+				map[string][]ISubscriber{
 					"topic 1": testSubscribers["Topic exists, two subs, msg received"],
 				},
 			},
-			args: args{
-				"topic 1",
-				"msg",
-			},
+			args:     args{"topic 1", "msg"},
 			expected: "msg",
 			wantErr:  false,
 		},
@@ -147,8 +128,8 @@ func TestPublisher_Publish(t *testing.T) {
 			}
 			ready := make(chan struct{})
 			go func() {
-				for index, ch := range testSubscribers[tt.name] {
-					if msg := <-ch; tt.expected != msg {
+				for index, sub := range testSubscribers[tt.name] {
+					if msg := sub.Receive(); tt.expected != msg {
 						t.Errorf(`Publisher.Publish() Gotten wrong message in subscriber #%d
 								expected message=%v
 								actual %v`,
@@ -167,78 +148,41 @@ func TestPublisher_Publish(t *testing.T) {
 
 func TestPublisher_Subscribe(t *testing.T) {
 	type fields struct {
-		topics map[string][]Subscriber
+		topics map[string][]ISubscriber
 	}
 	type args struct {
-		sub   Subscriber
+		sub   *Subscriber
 		topic string
 	}
-	addingSubscriber := make(Subscriber)
-	existingSubscriber := make(Subscriber)
+	addingSubscriber := NewSubscriber(0)
+	existingSubscriber := NewSubscriber(0)
 	tests := []struct {
 		name     string
 		fields   fields
 		args     args
-		expected []Subscriber
+		expected []ISubscriber
 		wantErr  bool
 	}{
 		{
-			name: "topic exist",
-			fields: fields{
-				topics: map[string][]Subscriber{
-					"topic 1": {},
-					"topic 2": {
-						existingSubscriber,
-					},
-				},
-			},
-			args: args{
-				addingSubscriber,
-				"topic 1",
-			},
-			expected: []Subscriber{
-				addingSubscriber,
-			},
-			wantErr: false,
+			name:     "topic exist",
+			fields:   fields{topics: map[string][]ISubscriber{"topic 1": {}, "topic 2": {existingSubscriber}}},
+			args:     args{addingSubscriber, "topic 1"},
+			expected: []ISubscriber{addingSubscriber},
+			wantErr:  false,
 		},
 		{
-			name: "topic exist, second subscriber",
-			fields: fields{
-				topics: map[string][]Subscriber{
-					"topic 1": {},
-					"topic 2": {
-						existingSubscriber,
-					},
-				},
-			},
-			args: args{
-				addingSubscriber,
-				"topic 2",
-			},
-			expected: []Subscriber{
-				existingSubscriber,
-				addingSubscriber,
-			},
-			wantErr: false,
+			name:     "topic exist, second subscriber",
+			fields:   fields{topics: map[string][]ISubscriber{"topic 1": {}, "topic 2": {existingSubscriber}}},
+			args:     args{addingSubscriber, "topic 2"},
+			expected: []ISubscriber{existingSubscriber, addingSubscriber},
+			wantErr:  false,
 		},
 		{
-			name: "topic is not exist, one subscriber",
-			fields: fields{
-				topics: map[string][]Subscriber{
-					"topic 1": {},
-					"topic 2": {
-						existingSubscriber,
-					},
-				},
-			},
-			args: args{
-				addingSubscriber,
-				"topic 3",
-			},
-			expected: []Subscriber{
-				addingSubscriber,
-			},
-			wantErr: false,
+			name:     "topic is not exist, one subscriber",
+			fields:   fields{topics: map[string][]ISubscriber{"topic 1": {}, "topic 2": {existingSubscriber}}},
+			args:     args{addingSubscriber, "topic 3"},
+			expected: []ISubscriber{addingSubscriber},
+			wantErr:  false,
 		},
 	}
 	for _, tt := range tests {

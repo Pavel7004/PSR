@@ -5,78 +5,53 @@ import (
 	"sync"
 
 	"github.com/pavel/PSR/pkg/domain"
+	"github.com/pavel/PSR/pkg/subscribe"
 	. "github.com/pavel/PSR/pkg/winner-definer"
-	"github.com/rs/zerolog/log"
 )
 
 var (
 	ErrGameAlreadyStarted = errors.New("The game is already started!")
+	ErrGameNotStarted     = errors.New("The game isn't started!")
+	ErrPlayerNotPresent   = errors.New("The player isn't exist in the room")
 )
 
 type Room struct {
 	config        RoomConfig
 	players       []*domain.Player
 	combinations  []PlayerChoice
-	active        bool
-	stopCh        chan struct{}
-	chooseCh      chan PlayerChoice
+	state         State
+	observer      *subscribe.Publisher
 	stepMtx       *sync.Mutex
 	winnerDefiner *WinnerDefiner
 }
 
-func NewRoom(config RoomConfig) *Room {
-	return &Room{
+func NewRoom(config RoomConfig, obs *subscribe.Publisher) *Room {
+	room := Room{
 		config:        config,
 		players:       make([]*domain.Player, 0, config.MaxPlayerCount),
 		combinations:  []PlayerChoice{},
-		active:        false,
-		stopCh:        make(chan struct{}),
-		chooseCh:      make(chan PlayerChoice),
+		state:         nil,
+		observer:      obs,
 		stepMtx:       new(sync.Mutex),
 		winnerDefiner: &WinnerDefiner{},
 	}
+	room.state = NewWaitingState(&room)
+	return &room
 }
 
-func (room *Room) IsActive() bool {
-	return room.active
+func (room *Room) HasPlayer(playerName string) bool {
+	for _, pl := range room.players {
+		if pl.GetID() == playerName {
+			return true
+		}
+	}
+	return false
 }
 
 func (room *Room) AddPlayer(player *domain.Player) error {
-	if room.IsActive() {
-		return ErrGameAlreadyStarted
-	}
-	room.stepMtx.Lock()
-	room.players = append(room.players, player)
-	log.Info().Msgf("Player %s added to the room", player.ID)
-
-	if len(room.players) == room.config.MaxPlayerCount {
-		room.active = true
-		go room.Run()
-	}
-	room.stepMtx.Unlock()
-	return nil
+	return room.state.AddPlayer(player)
 }
 
-func (room *Room) Run() {
-	log.Info().Msg("Room started")
-GAME_LOOP:
-	for {
-		select {
-		case <-room.stopCh:
-			log.Info().Msg("Room stopped")
-			break GAME_LOOP
-		case choice := <-room.chooseCh:
-			room.combinations = append(room.combinations, choice)
-			if len(room.combinations) == len(room.players) {
-				winners := room.winnerDefiner.GetWinners(room.combinations)
-				log.Info().Msgf("Winners: %v", winners)
-				room.combinations = make([]PlayerChoice, 0, room.config.MaxPlayerCount)
-				// break GAME_LOOP
-			}
-		}
-	}
-}
-
-func (room *Room) Choose(choice PlayerChoice) {
-	room.chooseCh <- choice
+func (room *Room) Choose(choice *PlayerChoice) error {
+	return room.state.Choose(choice)
 }
