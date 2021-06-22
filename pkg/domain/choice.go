@@ -1,5 +1,10 @@
 package domain
 
+import (
+	"errors"
+	"strings"
+)
+
 type Choice int
 
 const (
@@ -20,4 +25,16 @@ func (this Choice) Compare(another Choice) int {
 		return -1
 	}
 	return 1
+}
+
+func GetChoiceByName(name string) (Choice, error) {
+	switch strings.ToLower(name) {
+	case "rock":
+		return ROCK, nil
+	case "paper":
+		return PAPER, nil
+	case "scissors":
+		return SCISSORS, nil
+	}
+	return 0, errors.New("Not such choice")
 }

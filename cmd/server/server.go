@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+	"path/filepath"
+	"strings"
 	"text/template"
 
 	"os"
@@ -22,11 +24,21 @@ func main() {
 	r := chi.NewRouter()
 
 	wRoom := NewWebRoom("test", 2)
-	go wRoom.StartGame()
+	go wRoom.GameProcess()
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, _ := template.ParseFiles("templates/index.html")
 		tmpl.Execute(w, nil)
+	})
+
+	r.Get("/game", func(w http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("id")
+		tmpl, _ := template.ParseFiles("templates/game.html")
+		tmpl.Execute(w, struct {
+			ID string
+		}{
+			ID: id,
+		})
 	})
 
 	r.Get("/echo", func(w http.ResponseWriter, r *http.Request) {
@@ -36,28 +48,37 @@ func main() {
 			http.Error(w, "Upgrade socket error", 500)
 			return
 		}
-		wRoom.connections[id] = conn
-		wRoom.AddPlayer(id)
-		log.Info().Msgf("[server] Player %s added to the room", id)
-
-		// conn.WriteMessage(websocket.TextMessage, []byte("Игра началась"))
-		// _, msg, err := conn.ReadMessage()
-		// if err != nil {
-		// 	http.Error(w, "Reading message error", 500)
-		// 	return
-		// }
-
-		// rm.Choose(&winner_definer.PlayerChoice{
-		// 	PlayerID: id,
-		// 	Input: ,
-		// })
-		// log.Info().Msgf("[client] new message: %s", string(msg))
+		wRoom.AddPlayer(id, conn)
 	})
 
-	r.Get("/choice", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("choice"))
-	})
+	workDir, err := os.Getwd()
+	if err != nil {
+		log.Error().Err(err).Msg("[server] Can't list work dir")
+		return
+	}
+	filesDir := http.Dir(filepath.Join(workDir, "static"))
+	FileServer(r, "/static", filesDir)
 
 	log.Info().Msg("Server started")
 	http.ListenAndServe(":3000", r)
+}
+
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		log.Error().Msg("[server] FileServer does not permit any URL parameters")
+		return
+	}
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+		fs.ServeHTTP(w, r)
+	})
 }

@@ -1,63 +1,15 @@
+<!DOCTYPE html>
 <html>
-
 <head>
+    <title>Paper, Rock, Scissors game</title>
 </head>
-
 <body>
     <script>
-        let socket = null;
-
-        function send() {
-            var name = document.getElementById("name").value
-            socket = new WebSocket(`ws://localhost:3000/echo?id=${name}`);
-
-            socket.onopen = function (e) {};
-
-            socket.onmessage = function (event) {
-                alert(event.data);
-            };
-
-            socket.onclose = function (event) {
-                if (!event.wasClean) {
-                    alert('[close] Соединение прервано');
-                }
-            };
-
-            socket.onerror = function (error) {
-                alert(`[error] ${error.message}`);
-            };
-            //var radios = document.getElementsByName('choice');
-
-            //for (var i = 0; i < radios.length; i++) {
-            //    if (radios[i].checked) {
-            //        socket.send(radios[i].value);
-            //        break;
-            //    }
-            //}
+        function start() {
+            let name = document.getElementById("name").value;
+            window.location.replace(`/game?id=${name}`);
         }
-    </script>
-
-    <!-- <form method="post" id="1" action=""> -->
-    <!--     <p><b>Имя игрока</b><br> -->
-    <!--         <input type="text" name="PlayerID" size="40"> -->
-    <!--     </p> -->
-    <!--     <p><b>Выбор игрока</b><br> -->
-    <!--         <input type="radio" name="Choice" value="P">Paper <br> -->
-    <!--         <input type="radio" name="Choice" value="S">Scissors <br> -->
-    <!--         <input type="radio" name="Choice" value="R">Rock <br> -->
-    <!--     </p> -->
-    <!-- </form> -->
-
-    <input type="text" size="40" id="name">
-
-    <button onclick="send()">Начать игру</button> <br>
-
-    <div class="rd_choice">
-        <input type="radio" name="choice" value="P" />Paper <br>
-        <input type="radio" name="choice" value="S" />Scissors <br>
-        <input type="radio" name="choice" value="R" />Rock <br>
-    </div>
-
+    </script> <input type="text" size="40" id="name"><br>
+    <button onclick="start()">Начать игру</button><br>
 </body>
-
 </html>
