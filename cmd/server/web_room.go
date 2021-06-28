@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -14,6 +15,7 @@ import (
 type WebRoom struct {
 	name               string
 	room               *room.Room
+	mtx                *sync.Mutex
 	connectionToPlayer map[*websocket.Conn]string
 	playerToConnection map[string]*websocket.Conn
 	roomStateSub       *subscribe.Subscriber
@@ -38,6 +40,7 @@ func NewWebRoom(name string, maxPlayers int) *WebRoom {
 	return &WebRoom{
 		name:               name,
 		room:               rm,
+		mtx:                new(sync.Mutex),
 		connectionToPlayer: make(map[*websocket.Conn]string, maxPlayers),
 		playerToConnection: make(map[string]*websocket.Conn, maxPlayers),
 		roomStateSub:       subRoomState,
@@ -78,6 +81,7 @@ func (r *WebRoom) CloseConnections() {
 }
 
 func (r *WebRoom) AddPlayer(id string, conn *websocket.Conn) {
+	r.mtx.Lock()
 	err := r.room.AddPlayer(domain.NewPlayer(id))
 	if err != nil {
 		log.Error().Err(err).Msgf("[WebRoom:%s] Error adding player \"%s\"", r.name, id)
@@ -85,6 +89,7 @@ func (r *WebRoom) AddPlayer(id string, conn *websocket.Conn) {
 	}
 	r.connectionToPlayer[conn] = id
 	r.playerToConnection[id] = conn
+	r.mtx.Unlock()
 	log.Info().Msgf("[WebRoom:%s] Player %s: connection established", r.name, id)
 	go r.listenConn(conn)
 }
