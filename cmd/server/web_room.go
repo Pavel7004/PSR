@@ -48,7 +48,7 @@ func NewWebRoom(name string, maxPlayers int) *WebRoom {
 	}
 }
 
-func (r *WebRoom) GameProcess() {
+func (r *WebRoom) RoundProcess() {
 	r.roomStateSub.Receive()
 	startMsg := []byte("Игра началась")
 	for conn := range r.connectionToPlayer {
@@ -70,7 +70,6 @@ func (r *WebRoom) GameProcess() {
 			}
 		}
 	}
-	r.CloseConnections()
 }
 
 func (r *WebRoom) CloseConnections() {
