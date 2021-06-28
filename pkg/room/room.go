@@ -16,7 +16,7 @@ var (
 )
 
 type Room struct {
-	config        RoomConfig
+	config        *RoomConfig
 	players       []*domain.Player
 	combinations  []PlayerChoice
 	state         State
@@ -25,7 +25,7 @@ type Room struct {
 	winnerDefiner *WinnerDefiner
 }
 
-func NewRoom(config RoomConfig, obs *subscribe.Publisher) *Room {
+func NewRoom(config *RoomConfig, obs *subscribe.Publisher) *Room {
 	room := Room{
 		config:        config,
 		players:       make([]*domain.Player, 0, config.MaxPlayerCount),
@@ -54,4 +54,12 @@ func (room *Room) AddPlayer(player *domain.Player) error {
 
 func (room *Room) Choose(choice *PlayerChoice) error {
 	return room.state.Choose(choice)
+}
+
+func (room *Room) MaxScore() (*domain.Player, error) {
+	return room.state.MaxScore()
+}
+
+func (room *Room) IncPlayerScore(name string) error {
+	return room.state.IncPlayerScore(name)
 }

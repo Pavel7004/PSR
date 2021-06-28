@@ -5,11 +5,13 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+	"time"
 
 	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
+	"github.com/pavel/PSR/pkg/room"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -23,8 +25,13 @@ func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	r := chi.NewRouter()
 
-	wRoom := NewWebRoom("test", 2)
-	go wRoom.GameProcess()
+	wRoom := NewWebRoom("test", &room.RoomConfig{
+		StepTimeout:    5 * time.Second,
+		MaxPlayerCount: 2,
+		MaxScore:       5,
+		OnlyComputer:   false,
+	})
+	go wRoom.Main()
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, _ := template.ParseFiles("templates/index.html")

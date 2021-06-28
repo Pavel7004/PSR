@@ -2,7 +2,6 @@ package main
 
 import (
 	"sync"
-	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/pavel/PSR/pkg/domain"
@@ -15,6 +14,7 @@ import (
 type WebRoom struct {
 	name               string
 	room               *room.Room
+	config             *room.RoomConfig
 	mtx                *sync.Mutex
 	connectionToPlayer map[*websocket.Conn]string
 	playerToConnection map[string]*websocket.Conn
@@ -22,17 +22,9 @@ type WebRoom struct {
 	winnersSub         *subscribe.Subscriber
 }
 
-func NewWebRoom(name string, maxPlayers int) *WebRoom {
+func NewWebRoom(name string, config *room.RoomConfig) *WebRoom {
 	p := subscribe.NewPublisher()
-	rm := room.NewRoom(
-		room.RoomConfig{
-			StepTimeout:    5 * time.Second,
-			MaxPlayerCount: maxPlayers,
-			MaxScore:       5,
-			OnlyComputer:   false,
-		},
-		p,
-	)
+	rm := room.NewRoom(config, p)
 	subRoomState := subscribe.NewSubscriber(0)
 	p.Subscribe(subRoomState, "room_started")
 	subWinners := subscribe.NewSubscriber(0)
@@ -40,15 +32,34 @@ func NewWebRoom(name string, maxPlayers int) *WebRoom {
 	return &WebRoom{
 		name:               name,
 		room:               rm,
+		config:             config,
 		mtx:                new(sync.Mutex),
-		connectionToPlayer: make(map[*websocket.Conn]string, maxPlayers),
-		playerToConnection: make(map[string]*websocket.Conn, maxPlayers),
+		connectionToPlayer: make(map[*websocket.Conn]string, config.MaxPlayerCount),
+		playerToConnection: make(map[string]*websocket.Conn, config.MaxPlayerCount),
 		roomStateSub:       subRoomState,
 		winnersSub:         subWinners,
 	}
 }
 
 func (r *WebRoom) RoundProcess() {
+	winners, err := r.winnersSub.Receive().([]string)
+	if !err {
+		log.Error().Msgf("[WebRoom:%s] Received wrong winners type, got = %T, expected = []string", r.name, winners)
+		return
+	}
+	for _, name := range winners {
+		err := r.room.IncPlayerScore(name)
+		if err != nil {
+			log.Error().Err(err).Msgf("[WebRoom:%s] Incrementing score for player \"%s\" error", r.name, name)
+		}
+		err = r.playerToConnection[name].WriteMessage(websocket.TextMessage, []byte("win"))
+		if err != nil {
+			log.Error().Err(err).Msgf("[WebRoom:%s] Error sending winner signal to player \"%s\"", r.name, name)
+		}
+	}
+}
+
+func (r *WebRoom) Main() {
 	r.roomStateSub.Receive()
 	startMsg := []byte("Игра началась")
 	for conn := range r.connectionToPlayer {
@@ -57,35 +68,42 @@ func (r *WebRoom) RoundProcess() {
 			log.Error().Err(err).Msgf("[WebRoom:%s] Error sending message \"%s\"", r.name, startMsg)
 		}
 	}
-	winners, err := r.winnersSub.Receive().([]string)
-	if !err {
-		log.Error().Msgf("[WebRoom:%s] Received wrong winners type, got = %T, expected = []string", r.name, winners)
-		return
-	}
-	for _, name := range winners {
-		if r.room.HasPlayer(name) {
-			err := r.playerToConnection[name].WriteMessage(websocket.TextMessage, []byte("win"))
+	for {
+		r.RoundProcess()
+		leadingPlayer, err := r.room.MaxScore()
+		if err != nil {
+			log.Warn().Err(err).Msgf("[WebRoom:%s] Error Getting max score", r.name)
+			break
+		}
+		if leadingPlayer.GetScore() == r.config.MaxScore {
+			conn := r.playerToConnection[leadingPlayer.GetID()]
+			err = conn.WriteMessage(websocket.TextMessage, []byte("Score win"))
 			if err != nil {
-				log.Error().Err(err).Msgf("[WebRoom:%s] Error sending winner signal to player \"%s\"", r.name, name)
+				log.Error().Err(err).Msgf("[WebRoom:%s] Error sending message to player \"%s\"", r.name, leadingPlayer.GetID())
 			}
+			break
 		}
 	}
+	r.CloseConnections()
 }
 
 func (r *WebRoom) CloseConnections() {
 	for conn, id := range r.connectionToPlayer {
-		conn.Close()
-		log.Info().Msgf("[WebRoom:%s] Player %s: connection closed", r.name, id)
+		err := conn.Close()
+		if err != nil {
+			log.Warn().Err(err).Msgf("[WebRoom:%s] Player \"%s\": closing connection error", r.name, id)
+		}
+		log.Info().Msgf("[WebRoom:%s] Player \"%s\": connection closed", r.name, id)
 	}
 }
 
 func (r *WebRoom) AddPlayer(id string, conn *websocket.Conn) {
-	r.mtx.Lock()
 	err := r.room.AddPlayer(domain.NewPlayer(id))
 	if err != nil {
 		log.Error().Err(err).Msgf("[WebRoom:%s] Error adding player \"%s\"", r.name, id)
 		return
 	}
+	r.mtx.Lock()
 	r.connectionToPlayer[conn] = id
 	r.playerToConnection[id] = conn
 	r.mtx.Unlock()
@@ -97,8 +115,11 @@ func (r *WebRoom) listenConn(conn *websocket.Conn) {
 	for {
 		tMsg, msg, err := conn.ReadMessage()
 		if err != nil {
-			conn.Close()
-			log.Warn().Err(err).Msgf("[WebRoom:%s] reading message from %s error", r.name, r.connectionToPlayer[conn])
+			log.Warn().Err(err).Msgf("[WebRoom:%s] Reading message from %s error", r.name, r.connectionToPlayer[conn])
+			err = conn.Close()
+			if err != nil {
+				log.Error().Err(err).Msgf("[WebRoom:%s] Error closing connection for player %s", r.name, r.connectionToPlayer[conn])
+			}
 			break
 		}
 		if tMsg != websocket.TextMessage {
@@ -108,7 +129,7 @@ func (r *WebRoom) listenConn(conn *websocket.Conn) {
 		log.Info().Msgf("[WebRoom:%s] Got message from %s: %v", r.name, r.connectionToPlayer[conn], string(msg))
 		choice, err := domain.GetChoiceByName(string(msg))
 		if err != nil {
-			log.Warn().Err(err).Msgf("[WebRoom:%s] player %s: invalid choice %v", r.name, r.connectionToPlayer[conn], string(msg))
+			log.Warn().Err(err).Msgf("[WebRoom:%s] Player %s: invalid choice %v", r.name, r.connectionToPlayer[conn], string(msg))
 			continue
 		}
 		r.room.Choose(&winner_definer.PlayerChoice{

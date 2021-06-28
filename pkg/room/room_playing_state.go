@@ -33,3 +33,23 @@ func (s *PlayingState) Choose(choice *PlayerChoice) error {
 	}
 	return nil
 }
+
+func (s *PlayingState) MaxScore() (*domain.Player, error) {
+	maxScorePlayer := domain.NewPlayer("dummy")
+	for _, player := range s.room.players {
+		if player.GetScore() > maxScorePlayer.GetScore() {
+			maxScorePlayer = player
+		}
+	}
+	return maxScorePlayer, nil
+}
+
+func (s *PlayingState) IncPlayerScore(name string) error {
+	for _, player := range s.room.players {
+		if player.GetID() == name {
+			player.IncrementScore()
+			return nil
+		}
+	}
+	return ErrPlayerNotPresent
+}
