@@ -16,12 +16,8 @@ func TestNewPlayer(t *testing.T) {
 	}{
 		{
 			name: "Generate new player",
-			args: args{
-				"Test_player",
-			},
-			want: &Player{
-				"Test_player",
-			},
+			args: args{"Test_player"},
+			want: &Player{"Test_player"},
 		},
 	}
 	for _, tt := range tests {
@@ -43,11 +39,9 @@ func TestPlayer_GetID(t *testing.T) {
 		want   string
 	}{
 		{
-			name: "Get player ID",
-			fields: fields{
-				"Test_player_ID",
-			},
-			want: "Test_player_ID",
+			name:   "Get player ID",
+			fields: fields{"Test_player_ID"},
+			want:   "Test_player_ID",
 		},
 	}
 	for _, tt := range tests {
