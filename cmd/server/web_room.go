@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -10,10 +9,6 @@ import (
 	"github.com/pavel/PSR/pkg/subscribe"
 	winner_definer "github.com/pavel/PSR/pkg/winner-definer"
 	"github.com/rs/zerolog/log"
-)
-
-var (
-	ErrWrongWinnersType = errors.New("Received wrong winners type")
 )
 
 type WebRoom struct {
