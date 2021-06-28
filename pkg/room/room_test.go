@@ -18,17 +18,11 @@ func TestRoom_AddPlayer(t *testing.T) {
 	testPlayers := map[string][]*domain.Player{
 		"Test adding player in active game": {},
 		"Adding player": {
-			&domain.Player{
-				ID: "Player 1",
-			},
+			domain.NewPlayer("Player 1"),
 		},
 		"Adding last player": {
-			&domain.Player{
-				ID: "Player 1",
-			},
-			&domain.Player{
-				ID: "Player 2",
-			},
+			domain.NewPlayer("Player 1"),
+			domain.NewPlayer("Player 2"),
 		},
 	}
 	initTestRoomFn := func(config RoomConfig, isRunning bool, players []*domain.Player) *Room {
@@ -56,9 +50,9 @@ func TestRoom_AddPlayer(t *testing.T) {
 			name:                "Test adding player in active game",
 			roomConfig:          RoomConfig{2 * time.Second, 2, 5, false},
 			isRunning:           true,
-			players:             []*domain.Player{{ID: "Existing player 1"}, {ID: "Existing player 2"}},
+			players:             []*domain.Player{domain.NewPlayer("Existing player 1"), domain.NewPlayer("Existing player 2")},
 			initFn:              initTestRoomFn,
-			args:                args{&domain.Player{ID: "testPlayer"}},
+			args:                args{domain.NewPlayer("testPlayer")},
 			expectedRoomStarted: false,
 			wantErr:             true,
 		},
@@ -104,9 +98,7 @@ func TestRoom_Choose(t *testing.T) {
 		pub := subscribe.NewPublisher()
 		room := NewRoom(config, pub)
 		for i := 0; i < config.MaxPlayerCount; i++ {
-			room.players = append(room.players, &domain.Player{
-				ID: fmt.Sprintf("TestPlayer%d", i+1),
-			})
+			room.players = append(room.players, domain.NewPlayer(fmt.Sprintf("TestPlayer%d", i+1)))
 		}
 		if isRunning {
 			room.state = NewPlayingState(room)
@@ -221,7 +213,7 @@ func TestRoom_HasPlayer(t *testing.T) {
 			name:    "Has player",
 			config:  RoomConfig{2 * time.Second, 2, 5, false},
 			initFn:  initTestRoomFn,
-			players: []*domain.Player{{ID: "Player1"}},
+			players: []*domain.Player{domain.NewPlayer("Player1")},
 			args:    args{playerName: "Player1"},
 			want:    true,
 		},
@@ -229,7 +221,7 @@ func TestRoom_HasPlayer(t *testing.T) {
 			name:    "player in not in the room",
 			config:  RoomConfig{2 * time.Second, 2, 5, false},
 			initFn:  initTestRoomFn,
-			players: []*domain.Player{{ID: "Player1"}},
+			players: []*domain.Player{domain.NewPlayer("Player1")},
 			args:    args{playerName: "Player2"},
 			want:    false,
 		},
