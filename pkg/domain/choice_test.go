@@ -13,76 +13,58 @@ func TestChoice_Compare(t *testing.T) {
 		want int
 	}{
 		{
-			"test rock vs paper",
-			ROCK,
-			args{
-				another: PAPER,
-			},
-			-1,
+			name: "test rock vs paper",
+			this: ROCK,
+			args: args{another: PAPER},
+			want: -1,
 		},
 		{
-			"test rock vs scissors",
-			ROCK,
-			args{
-				another: SCISSORS,
-			},
-			1,
+			name: "test rock vs scissors",
+			this: ROCK,
+			args: args{another: SCISSORS},
+			want: 1,
 		},
 		{
-			"test rock vs rock",
-			ROCK,
-			args{
-				another: ROCK,
-			},
-			0,
+			name: "test rock vs rock",
+			this: ROCK,
+			args: args{another: ROCK},
+			want: 0,
 		},
 		{
-			"test paper vs rock",
-			PAPER,
-			args{
-				another: ROCK,
-			},
-			1,
+			name: "test paper vs rock",
+			this: PAPER,
+			args: args{another: ROCK},
+			want: 1,
 		},
 		{
-			"test paper vs paper",
-			PAPER,
-			args{
-				another: PAPER,
-			},
-			0,
+			name: "test paper vs paper",
+			this: PAPER,
+			args: args{another: PAPER},
+			want: 0,
 		},
 		{
-			"test paper vs scissors",
-			PAPER,
-			args{
-				another: SCISSORS,
-			},
-			-1,
+			name: "test paper vs scissors",
+			this: PAPER,
+			args: args{another: SCISSORS},
+			want: -1,
 		},
 		{
-			"test scissors vs rock",
-			SCISSORS,
-			args{
-				another: ROCK,
-			},
-			-1,
+			name: "test scissors vs rock",
+			this: SCISSORS,
+			args: args{another: ROCK},
+			want: -1,
 		},
 		{
-			"test scissors vs paper",
-			SCISSORS,
-			args{
-				another: PAPER,
-			},
-			1,
+			name: "test scissors vs paper",
+			this: SCISSORS,
+			args: args{another: PAPER},
+			want: 1,
 		},
 		{
-			"test scissors vs scissors",
-			SCISSORS,
-			args{
-				another: SCISSORS,
-			},
-			0,
+			name: "test scissors vs scissors",
+			this: SCISSORS,
+			args: args{another: SCISSORS},
+			want: 0,
 		},
 	}
 	for _, tt := range tests {
