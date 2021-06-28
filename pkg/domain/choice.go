@@ -18,13 +18,12 @@ const (
 )
 
 func (this Choice) Compare(another Choice) int {
-	const choicesCount = 3
 	if this == another {
 		return 0
 	}
 	thisInt := int(this)
 	anotherInt := int(another)
-	winningChoice := (thisInt + 1) % choicesCount
+	winningChoice := (thisInt + 1) % 3
 	if winningChoice == anotherInt {
 		return -1
 	}
