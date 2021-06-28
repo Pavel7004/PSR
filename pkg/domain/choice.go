@@ -7,6 +7,10 @@ import (
 
 type Choice int
 
+var (
+	ErrNoSuchChoice = errors.New("Not such choice")
+)
+
 const (
 	ROCK     Choice = 0
 	PAPER    Choice = 1
@@ -36,5 +40,5 @@ func GetChoiceByName(name string) (Choice, error) {
 	case "scissors":
 		return SCISSORS, nil
 	}
-	return 0, errors.New("Not such choice")
+	return 0, ErrNoSuchChoice
 }
