@@ -75,3 +75,52 @@ func TestChoice_Compare(t *testing.T) {
 		})
 	}
 }
+
+func TestGetChoiceByName(t *testing.T) {
+	type args struct {
+		name string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    Choice
+		wantErr bool
+	}{
+		{
+			name:    "Error check",
+			args:    args{name: "rCk"},
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "rock",
+			args:    args{name: "RoCk"},
+			want:    ROCK,
+			wantErr: false,
+		},
+		{
+			name:    "scissors",
+			args:    args{name: "SciSsoRs"},
+			want:    SCISSORS,
+			wantErr: false,
+		},
+		{
+			name:    "paper",
+			args:    args{name: "PaPEr"},
+			want:    PAPER,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GetChoiceByName(tt.args.name)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetChoiceByName() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("GetChoiceByName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
