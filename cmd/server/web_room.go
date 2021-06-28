@@ -23,7 +23,6 @@ type WebRoom struct {
 	playerToConnection map[string]*websocket.Conn
 	roomStateSub       *subscribe.Subscriber
 	winnersSub         *subscribe.Subscriber
-	err                chan error
 }
 
 func NewWebRoom(name string, maxPlayers int) *WebRoom {
@@ -48,7 +47,6 @@ func NewWebRoom(name string, maxPlayers int) *WebRoom {
 		playerToConnection: make(map[string]*websocket.Conn, maxPlayers),
 		roomStateSub:       subRoomState,
 		winnersSub:         subWinners,
-		err:                make(chan error, 1),
 	}
 }
 
@@ -59,13 +57,11 @@ func (r *WebRoom) GameProcess() {
 		err := conn.WriteMessage(websocket.TextMessage, startMsg)
 		if err != nil {
 			log.Error().Err(err).Msgf("[WebRoom:%s] Error sending message \"%s\"", r.name, startMsg)
-			r.err <- err
 		}
 	}
 	winners, err := r.winnersSub.Receive().([]string)
 	if !err {
 		log.Error().Msgf("[WebRoom:%s] Received wrong winners type, got = %T, expected = []string", r.name, winners)
-		r.err <- ErrWrongWinnersType
 		return
 	}
 	for _, name := range winners {
@@ -76,7 +72,6 @@ func (r *WebRoom) GameProcess() {
 			}
 		}
 	}
-	r.err <- nil
 	r.CloseConnections()
 }
 
@@ -91,7 +86,6 @@ func (r *WebRoom) AddPlayer(id string, conn *websocket.Conn) {
 	err := r.room.AddPlayer(domain.NewPlayer(id))
 	if err != nil {
 		log.Error().Err(err).Msgf("[WebRoom:%s] Error adding player \"%s\"", r.name, id)
-		r.err <- err
 		return
 	}
 	r.connectionToPlayer[conn] = id
@@ -102,12 +96,15 @@ func (r *WebRoom) AddPlayer(id string, conn *websocket.Conn) {
 
 func (r *WebRoom) listenConn(conn *websocket.Conn) {
 	for {
-		_, msg, err := conn.ReadMessage()
+		tMsg, msg, err := conn.ReadMessage()
 		if err != nil {
 			conn.Close()
 			log.Warn().Err(err).Msgf("[WebRoom:%s] reading message from %s error", r.name, r.connectionToPlayer[conn])
-			r.err <- err
 			break
+		}
+		if tMsg != websocket.TextMessage {
+			log.Warn().Msgf("[WebRoom:%s] Message type isn't text, got = %v, expected = %v", r.name, tMsg, websocket.TextMessage)
+			continue
 		}
 		log.Info().Msgf("[WebRoom:%s] Got message from %s: %v", r.name, r.connectionToPlayer[conn], string(msg))
 		choice, err := domain.GetChoiceByName(string(msg))
@@ -120,8 +117,4 @@ func (r *WebRoom) listenConn(conn *websocket.Conn) {
 			Input:    choice,
 		})
 	}
-}
-
-func (r *WebRoom) isErrorOccured() error {
-	return <-r.err
 }
