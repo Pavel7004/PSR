@@ -118,7 +118,7 @@ func (r *WebRoom) listenConn(conn *websocket.Conn) {
 			log.Warn().Err(err).Msgf("[WebRoom:%s] Reading message from %s error", r.name, r.connectionToPlayer[conn])
 			err = conn.Close()
 			if err != nil {
-				log.Error().Err(err).Msgf("[WebRoom:%s] Error closing connection for player %s", r.name, r.connectionToPlayer[conn])
+				log.Warn().Err(err).Msgf("[WebRoom:%s] Error closing connection for player %s", r.name, r.connectionToPlayer[conn])
 			}
 			break
 		}

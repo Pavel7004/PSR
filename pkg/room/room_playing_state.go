@@ -35,11 +35,16 @@ func (s *PlayingState) Choose(choice *PlayerChoice) error {
 }
 
 func (s *PlayingState) MaxScore() (*domain.Player, error) {
-	maxScorePlayer := domain.NewPlayer("dummy")
+	maxScore := -1
+	var maxScorePlayer *domain.Player
 	for _, player := range s.room.players {
-		if player.GetScore() > maxScorePlayer.GetScore() {
+		if player.GetScore() > maxScore {
 			maxScorePlayer = player
+			maxScore = player.GetScore()
 		}
+	}
+	if maxScore == -1 {
+		return nil, ErrPlayerNotPresent
 	}
 	return maxScorePlayer, nil
 }
