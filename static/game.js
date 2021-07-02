@@ -9,28 +9,30 @@ function getParameterByName(name, url = window.location.href) {
 
 let id = getParameterByName("id");
 let socket = new WebSocket(`ws://localhost:3000/echo?id=${id}`);
+let statusLabel = document.getElementById('status');
 
 socket.onopen = function (e) {};
 
 socket.onclose = function (event) {
   if (!event.wasClean) {
-    alert("[close] Соединение прервано");
+    statusLabel.innerText = '[close] Соединение прервано';
   }
 };
 
 socket.onmessage = function (event) {
-  alert(event.data);
+  statusLabel.innerText = event.data;
 };
 
 socket.onerror = function (error) {
-  alert(`[error] ${error.message}`);
+  statusLabel.innerText = `[error] ${error.message}`;
 };
 
 function send() {
-  let radios = document.getElementsByName("choice");
+  let radios = document.getElementsByName('choice');
   for (let i = 0, len = radios.length; i < len; i++) {
     if (radios[i].checked) {
       socket.send(radios[i].value);
+      statusLabel.innerText = 'Ожидание хода другого игрока';
       break;
     }
   }

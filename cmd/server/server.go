@@ -27,8 +27,8 @@ func main() {
 
 	wRoom := NewWebRoom("test", &room.RoomConfig{
 		StepTimeout:    5 * time.Second,
-		MaxPlayerCount: 2,
-		MaxScore:       5,
+		MaxPlayerCount: 3,
+		MaxScore:       7,
 		OnlyComputer:   false,
 	})
 	go wRoom.Main()
@@ -57,6 +57,14 @@ func main() {
 		}
 		wRoom.AddPlayer(id, conn)
 	})
+
+	// r := new(router)
+	// r.Get("/kjhghjkl", EchoHandler)
+	// r.Get("/kjhghjkl", EchoHandler)
+	// r.Get("/kjhghjkl", EchoHandler)
+	// r.Get("/kjhghjkl", EchoHandler)
+
+	// return r
 
 	workDir, err := os.Getwd()
 	if err != nil {

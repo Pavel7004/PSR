@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -21,6 +23,14 @@ type WebRoom struct {
 	roomStateSub       *subscribe.Subscriber
 	winnersSub         *subscribe.Subscriber
 }
+
+type winType int
+
+const (
+	WIN winType = iota + 1
+	LOSE
+	TIE
+)
 
 func NewWebRoom(name string, config *room.RoomConfig) *WebRoom {
 	p := subscribe.NewPublisher()
@@ -47,12 +57,34 @@ func (r *WebRoom) RoundProcess() {
 		log.Error().Msgf("[WebRoom:%s] Received wrong winners type, got = %T, expected = []string", r.name, winners)
 		return
 	}
+
+	messages := map[winType]string{
+		WIN:  "You won!",
+		LOSE: fmt.Sprintf("You lost! Winners: %s", strings.Join(winners, ", ")),
+		TIE:  "Draw, everyone lost!",
+	}
+	getMessage := func(name string) winType {
+		winStatus := LOSE
+		for _, winner := range winners {
+			if name == winner {
+				winStatus = WIN
+			}
+		}
+		if len(winners) == 0 {
+			winStatus = TIE
+		}
+		return winStatus
+	}
+
 	for _, name := range winners {
 		err := r.room.IncPlayerScore(name)
 		if err != nil {
 			log.Error().Err(err).Msgf("[WebRoom:%s] Incrementing score for player \"%s\" error", r.name, name)
 		}
-		err = r.playerToConnection[name].WriteMessage(websocket.TextMessage, []byte("win"))
+	}
+
+	for conn, name := range r.connectionToPlayer {
+		err := conn.WriteMessage(websocket.TextMessage, []byte(messages[getMessage(name)]))
 		if err != nil {
 			log.Error().Err(err).Msgf("[WebRoom:%s] Error sending winner signal to player \"%s\"", r.name, name)
 		}
@@ -114,6 +146,9 @@ func (r *WebRoom) AddPlayer(id string, conn *websocket.Conn) {
 func (r *WebRoom) listenConn(conn *websocket.Conn) {
 	for {
 		tMsg, msg, err := conn.ReadMessage()
+		if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
+			break
+		}
 		if err != nil {
 			log.Warn().Err(err).Msgf("[WebRoom:%s] Reading message from %s error", r.name, r.connectionToPlayer[conn])
 			err = conn.Close()
