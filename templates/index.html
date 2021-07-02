@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Paper, Rock, Scissors game</title>
+</head>
+<body>
+    <script>
+        function start() {
+            let name = document.getElementById("name").value;
+            window.location.replace(`/game?id=${name}`);
+        }
+    </script> <input type="text" size="40" id="name"><br>
+    <button onclick="start()">Начать игру</button><br>
+</body>
+</html>

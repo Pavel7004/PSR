@@ -19,7 +19,7 @@ func NewWaitingState(r *Room) *WaitingState {
 func (s *WaitingState) AddPlayer(player *domain.Player) error {
 	s.room.stepMtx.Lock()
 	s.room.players = append(s.room.players, player)
-	log.Info().Msgf("Player %s added to the room", player.ID)
+	log.Info().Msgf("Player %s added to the room", player.GetID())
 	if len(s.room.players) == s.room.config.MaxPlayerCount {
 		s.room.state = NewPlayingState(s.room)
 		log.Info().Msg("Room started")
@@ -30,5 +30,13 @@ func (s *WaitingState) AddPlayer(player *domain.Player) error {
 }
 
 func (s *WaitingState) Choose(choice *PlayerChoice) error {
+	return ErrGameNotStarted
+}
+
+func (s *WaitingState) MaxScore() (*domain.Player, error) {
+	return nil, ErrGameNotStarted
+}
+
+func (s *WaitingState) IncPlayerScore(name string) error {
 	return ErrGameNotStarted
 }

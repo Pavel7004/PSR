@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Main game page</title>
+</head>
+<p>Игрок {{ .ID }}</p>
+<p><label id="status"></label></p>
+<div class="rd_choice">
+    <input type="radio" name="choice" id="choicePaper" value=
+    "Paper"><label for="choicePaper">Paper</label> <input type=
+    "radio" name="choice" id="choiceScissors" value=
+    "Scissors"><label for="choiceScissors">Scissors</label>
+    <input type="radio" name="choice" id="choiceRock" value=
+    "Rock"><label for="choiceRock">Rock</label>
+</div><br>
+<button onclick="send()">Выбрать</button>
+<body>
+    <script src="/static/game.js" type="text/javascript"></script>
+</body>
+</html>
