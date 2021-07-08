@@ -33,7 +33,7 @@ func (s *WaitingState) Choose(choice *PlayerChoice) error {
 	return ErrGameNotStarted
 }
 
-func (s *WaitingState) MaxScore() (*domain.Player, error) {
+func (s *WaitingState) GetMaxScore() (*domain.Player, error) {
 	return nil, ErrGameNotStarted
 }
 

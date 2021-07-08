@@ -34,7 +34,7 @@ func (s *PlayingState) Choose(choice *PlayerChoice) error {
 	return nil
 }
 
-func (s *PlayingState) MaxScore() (*domain.Player, error) {
+func (s *PlayingState) GetMaxScore() (*domain.Player, error) {
 	maxScore := -1
 	var maxScorePlayer *domain.Player
 	for _, player := range s.room.players {
