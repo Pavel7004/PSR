@@ -26,7 +26,7 @@ func NewScoreManager(players []*domain.Player) *ScoreManager {
 
 func (sm *ScoreManager) GetPlayerScore(name string) (int, error) {
 	val, err := sm.playersScores[name]
-	if err {
+	if !err {
 		return 0, ErrPlayerNotFound
 	}
 	return val, nil
@@ -34,7 +34,7 @@ func (sm *ScoreManager) GetPlayerScore(name string) (int, error) {
 
 func (sm *ScoreManager) IncrementPlayerScore(name string) error {
 	val, err := sm.playersScores[name]
-	if err {
+	if !err {
 		return ErrPlayerNotFound
 	}
 	sm.playersScores[name] = val + 1
