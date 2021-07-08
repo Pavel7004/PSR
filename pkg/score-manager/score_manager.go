@@ -41,6 +41,18 @@ func (sm *ScoreManager) IncrementPlayerScore(name string) error {
 	return nil
 }
 
+func (sm *ScoreManager) GetMaxScore() (string, int) {
+	maxScore := -1
+	maxName := ""
+	for name, score := range sm.playersScores {
+		if score > maxScore {
+			maxName = name
+			maxScore = score
+		}
+	}
+	return maxName, maxScore
+}
+
 func (sm *ScoreManager) ResetPlayersScores() {
 	for name := range sm.playersScores {
 		sm.playersScores[name] = 0
