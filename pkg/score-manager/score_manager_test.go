@@ -156,3 +156,42 @@ func TestScoreManager_ResetPlayersScores(t *testing.T) {
 		})
 	}
 }
+
+func TestScoreManager_GetMaxScore(t *testing.T) {
+	type fields struct {
+		playersScores map[string]int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+		want1  int
+	}{
+		{
+			name:   "Get max score",
+			fields: fields{playersScores: map[string]int{"test1": 1, "test2": 2, "test3": 3}},
+			want:   "test3",
+			want1:  3,
+		},
+		{
+			name:   "No players in the room",
+			fields: fields{playersScores: map[string]int{}},
+			want:   "",
+			want1:  -1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sm := &ScoreManager{
+				playersScores: tt.fields.playersScores,
+			}
+			got, got1 := sm.GetMaxScore()
+			if got != tt.want {
+				t.Errorf("ScoreManager.MaxScore() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("ScoreManager.MaxScore() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
+}
