@@ -1,6 +1,14 @@
 package scoremanager
 
-import "github.com/pavel/PSR/pkg/domain"
+import (
+	"errors"
+
+	"github.com/pavel/PSR/pkg/domain"
+)
+
+var (
+	ErrPlayerNotFound = errors.New("Player isn't present in current score_manager")
+)
 
 type ScoreManager struct {
 	playersScores map[string]int
@@ -16,12 +24,21 @@ func NewScoreManager(players []*domain.Player) *ScoreManager {
 	}
 }
 
-func (sm *ScoreManager) GetPlayerScore(name string) int {
-	return sm.playersScores[name]
+func (sm *ScoreManager) GetPlayerScore(name string) (int, error) {
+	val, err := sm.playersScores[name]
+	if err {
+		return 0, ErrPlayerNotFound
+	}
+	return val, nil
 }
 
-func (sm *ScoreManager) IncrementPlayerScore(name string) {
-	sm.playersScores[name]++
+func (sm *ScoreManager) IncrementPlayerScore(name string) error {
+	val, err := sm.playersScores[name]
+	if err {
+		return ErrPlayerNotFound
+	}
+	sm.playersScores[name] = val + 1
+	return nil
 }
 
 func (sm *ScoreManager) ResetPlayersScores() {
