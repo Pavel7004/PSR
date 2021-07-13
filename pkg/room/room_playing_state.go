@@ -34,9 +34,9 @@ func (s *PlayingState) Choose(choice *PlayerChoice) error {
 	return nil
 }
 
-func (s *PlayingState) GetMaxScore() (string, error) {
-	name, _ := s.room.scoremanager.GetMaxScore()
-	return name, nil
+func (s *PlayingState) GetMaxScore() (string, int, error) {
+	name, score := s.room.scoremanager.GetMaxScore()
+	return name, score, nil
 }
 
 func (s *PlayingState) IncPlayerScore(name string) error {
