@@ -102,16 +102,16 @@ func (r *WebRoom) Main() {
 	}
 	for {
 		r.RoundProcess()
-		leadingPlayer, err := r.room.GetMaxScore()
+		leadingPlayerName, leadingPlayerScore, err := r.room.GetMaxScore()
 		if err != nil {
 			log.Warn().Err(err).Msgf("[WebRoom:%s] Error Getting max score", r.name)
 			break
 		}
-		if leadingPlayer.GetScore() == r.config.MaxScore {
-			conn := r.playerToConnection[leadingPlayer.GetID()]
+		if leadingPlayerScore == r.config.MaxScore {
+			conn := r.playerToConnection[leadingPlayerName]
 			err = conn.WriteMessage(websocket.TextMessage, []byte("Score win"))
 			if err != nil {
-				log.Error().Err(err).Msgf("[WebRoom:%s] Error sending message to player \"%s\"", r.name, leadingPlayer.GetID())
+				log.Error().Err(err).Msgf("[WebRoom:%s] Error sending message to player \"%s\"", r.name, leadingPlayerName)
 			}
 			break
 		}
