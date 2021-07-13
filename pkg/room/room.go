@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/pavel/PSR/pkg/domain"
+	. "github.com/pavel/PSR/pkg/score-manager"
 	"github.com/pavel/PSR/pkg/subscribe"
 	. "github.com/pavel/PSR/pkg/winner-definer"
 )
@@ -23,6 +24,7 @@ type Room struct {
 	observer      *subscribe.Publisher
 	stepMtx       *sync.Mutex
 	winnerDefiner *WinnerDefiner
+	scoremanager  *ScoreManager
 }
 
 func NewRoom(config *RoomConfig, obs *subscribe.Publisher) *Room {
@@ -34,6 +36,7 @@ func NewRoom(config *RoomConfig, obs *subscribe.Publisher) *Room {
 		observer:      obs,
 		stepMtx:       new(sync.Mutex),
 		winnerDefiner: &WinnerDefiner{},
+		scoremanager:  nil,
 	}
 	room.state = NewWaitingState(&room)
 	return &room
@@ -56,7 +59,7 @@ func (room *Room) Choose(choice *PlayerChoice) error {
 	return room.state.Choose(choice)
 }
 
-func (room *Room) GetMaxScore() (*domain.Player, error) {
+func (room *Room) GetMaxScore() (string, error) {
 	return room.state.GetMaxScore()
 }
 

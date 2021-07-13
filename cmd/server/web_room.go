@@ -102,7 +102,7 @@ func (r *WebRoom) Main() {
 	}
 	for {
 		r.RoundProcess()
-		leadingPlayer, err := r.room.MaxScore()
+		leadingPlayer, err := r.room.GetMaxScore()
 		if err != nil {
 			log.Warn().Err(err).Msgf("[WebRoom:%s] Error Getting max score", r.name)
 			break

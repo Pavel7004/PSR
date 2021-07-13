@@ -2,6 +2,7 @@ package room
 
 import (
 	"github.com/pavel/PSR/pkg/domain"
+	. "github.com/pavel/PSR/pkg/score-manager"
 	. "github.com/pavel/PSR/pkg/winner-definer"
 	"github.com/rs/zerolog/log"
 )
@@ -22,6 +23,7 @@ func (s *WaitingState) AddPlayer(player *domain.Player) error {
 	log.Info().Msgf("Player %s added to the room", player.GetID())
 	if len(s.room.players) == s.room.config.MaxPlayerCount {
 		s.room.state = NewPlayingState(s.room)
+		s.room.scoremanager = NewScoreManager(s.room.players)
 		log.Info().Msg("Room started")
 		s.room.observer.Publish("room_started", struct{}{})
 	}
@@ -33,8 +35,8 @@ func (s *WaitingState) Choose(choice *PlayerChoice) error {
 	return ErrGameNotStarted
 }
 
-func (s *WaitingState) GetMaxScore() (*domain.Player, error) {
-	return nil, ErrGameNotStarted
+func (s *WaitingState) GetMaxScore() (string, error) {
+	return "", ErrGameNotStarted
 }
 
 func (s *WaitingState) IncPlayerScore(name string) error {
