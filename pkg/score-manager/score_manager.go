@@ -25,32 +25,34 @@ func NewScoreManager(players []*domain.Player) *ScoreManager {
 }
 
 func (sm *ScoreManager) GetPlayerScore(name string) (int, error) {
-	val, err := sm.playersScores[name]
-	if !err {
+	val, ok := sm.playersScores[name]
+	if !ok {
 		return 0, ErrPlayerNotFound
 	}
 	return val, nil
 }
 
 func (sm *ScoreManager) IncrementPlayerScore(name string) error {
-	val, err := sm.playersScores[name]
-	if !err {
+	val, ok := sm.playersScores[name]
+	if !ok {
 		return ErrPlayerNotFound
 	}
 	sm.playersScores[name] = val + 1
 	return nil
 }
 
-func (sm *ScoreManager) GetMaxScore() (string, int) {
-	maxScore := -1
-	maxName := ""
+func (sm *ScoreManager) GetLeadingPlayerName() string {
+	var (
+		maxScore = -1
+		maxName  = ""
+	)
 	for name, score := range sm.playersScores {
 		if score > maxScore {
 			maxName = name
 			maxScore = score
 		}
 	}
-	return maxName, maxScore
+	return maxName
 }
 
 func (sm *ScoreManager) ResetPlayersScores() {

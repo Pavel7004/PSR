@@ -157,7 +157,7 @@ func TestScoreManager_ResetPlayersScores(t *testing.T) {
 	}
 }
 
-func TestScoreManager_GetMaxScore(t *testing.T) {
+func TestScoreManager_GetLeadingPlayerName(t *testing.T) {
 	type fields struct {
 		playersScores map[string]int
 	}
@@ -185,12 +185,9 @@ func TestScoreManager_GetMaxScore(t *testing.T) {
 			sm := &ScoreManager{
 				playersScores: tt.fields.playersScores,
 			}
-			got, got1 := sm.GetMaxScore()
+			got := sm.GetLeadingPlayerName()
 			if got != tt.want {
 				t.Errorf("ScoreManager.MaxScore() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("ScoreManager.MaxScore() got1 = %v, want %v", got1, tt.want1)
 			}
 		})
 	}

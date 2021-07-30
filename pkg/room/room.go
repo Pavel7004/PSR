@@ -59,8 +59,12 @@ func (room *Room) Choose(choice *PlayerChoice) error {
 	return room.state.Choose(choice)
 }
 
-func (room *Room) GetMaxScore() (string, int, error) {
-	return room.state.GetMaxScore()
+func (room *Room) GetLeader() (string, error) {
+	return room.state.GetLeader()
+}
+
+func (room *Room) GetPlayerScore(name string) (int, error) {
+	return room.state.GetPlayerScore(name)
 }
 
 func (room *Room) IncPlayerScore(name string) error {

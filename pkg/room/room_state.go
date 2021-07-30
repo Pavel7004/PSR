@@ -8,6 +8,7 @@ import (
 type State interface {
 	AddPlayer(*domain.Player) error
 	Choose(*PlayerChoice) error
-	GetMaxScore() (string, int, error)
+	GetLeader() (string, error)
+	GetPlayerScore(string) (int, error)
 	IncPlayerScore(string) error
 }

@@ -34,21 +34,23 @@ func (s *PlayingState) Choose(choice *PlayerChoice) error {
 	return nil
 }
 
-func (s *PlayingState) GetMaxScore() (string, int, error) {
-	name, score := s.room.scoremanager.GetMaxScore()
-	return name, score, nil
+func (s *PlayingState) GetLeader() (string, error) {
+	name := s.room.scoremanager.GetLeadingPlayerName()
+	return name, nil
+}
+
+func (s *PlayingState) GetPlayerScore(name string) (int, error) {
+	score, err := s.room.scoremanager.GetPlayerScore(name)
+	if err != nil {
+		return -1, ErrPlayerNotPresent
+	}
+	return score, nil
 }
 
 func (s *PlayingState) IncPlayerScore(name string) error {
-	for _, player := range s.room.players {
-		if player.GetID() == name {
-			err := s.room.scoremanager.IncrementPlayerScore(name)
-			if err != nil {
-				log.Error().Err(err).Msgf("Player \"%s\" not found by score_manager", name)
-				break
-			}
-			return nil
-		}
+	if err := s.room.scoremanager.IncrementPlayerScore(name); err != nil {
+		log.Error().Err(err).Msgf("Player \"%s\" not found by score_manager", name)
+		return ErrPlayerNotPresent
 	}
-	return ErrPlayerNotPresent
+	return nil
 }

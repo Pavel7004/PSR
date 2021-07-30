@@ -35,8 +35,12 @@ func (s *WaitingState) Choose(choice *PlayerChoice) error {
 	return ErrGameNotStarted
 }
 
-func (s *WaitingState) GetMaxScore() (string, int, error) {
-	return "", 0, ErrGameNotStarted
+func (s *WaitingState) GetLeader() (string, error) {
+	return "", ErrGameNotStarted
+}
+
+func (s *WaitingState) GetPlayerScore(name string) (int, error) {
+	return -1, ErrGameNotStarted
 }
 
 func (s *WaitingState) IncPlayerScore(name string) error {
