@@ -1,0 +1,25 @@
+run:
+  tests: false
+  fix: true
+  skip-dirs:
+    - vendor
+    - misc
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - errcheck
+    - unused
+    - varcheck
+    - whitespace
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - structcheck
+    - typecheck
+    - gosec
+    - prealloc
+    - gofmt
+    - goimports
+    - funlen
