@@ -1,0 +1,22 @@
+#+title: PSR
+#+AUTHOR: Kovalev Pavel
+
+Веб-игра Камень-Ножницы-Бумага.
+
+* Зависимости
+- Golang
+#+begin_src sh
+sudo apt install golang  # For Ubuntu/Debian
+
+sudo pacman -S go        # For Arch/Manjaro
+#+end_src
+
+* Сборка программы
+#+begin_src sh
+make build
+#+end_src
+
+* Запуск программы
+#+begin_src sh
+./server
+#+end_src
