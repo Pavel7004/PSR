@@ -35,7 +35,7 @@ func NewRoom(config *RoomConfig, obs *subscribe.Publisher) *Room {
 		state:         nil,
 		observer:      obs,
 		stepMtx:       new(sync.Mutex),
-		winnerDefiner: &WinnerDefiner{},
+		winnerDefiner: new(WinnerDefiner),
 		scoremanager:  nil,
 	}
 	room.state = NewWaitingState(&room)
