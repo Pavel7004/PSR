@@ -9,6 +9,6 @@ type State interface {
 	AddPlayer(*domain.Player) error
 	Choose(*PlayerChoice) error
 	GetLeader() (string, error)
-	GetPlayerScore(string) (int, error)
+	GetPlayerScore(string) (uint64, error)
 	IncPlayerScore(string) error
 }

@@ -7,10 +7,10 @@ import (
 )
 
 type PlayingState struct {
-	room *Room
+	room *Game
 }
 
-func NewPlayingState(r *Room) *PlayingState {
+func NewPlayingState(r *Game) *PlayingState {
 	return &PlayingState{
 		room: r,
 	}
@@ -31,7 +31,7 @@ func (s *PlayingState) Choose(choice *PlayerChoice) error {
 		log.Info().Msgf("Winners: %v", winners)
 
 		err := s.room.observer.Publish("winners", winners)
-		s.room.combinations = make([]PlayerChoice, 0, s.room.config.MaxPlayerCount)
+		s.room.combinations = make([]PlayerChoice, 0, s.room.Config.MaxPlayerCount)
 
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to publish event \"winners\"")
@@ -46,10 +46,10 @@ func (s *PlayingState) GetLeader() (string, error) {
 	return s.room.scoremanager.GetLeadingPlayerName(), nil
 }
 
-func (s *PlayingState) GetPlayerScore(name string) (int, error) {
+func (s *PlayingState) GetPlayerScore(name string) (uint64, error) {
 	score, err := s.room.scoremanager.GetPlayerScore(name)
 	if err != nil {
-		return -1, ErrPlayerNotPresent
+		return 0, ErrPlayerNotPresent
 	}
 
 	return score, nil

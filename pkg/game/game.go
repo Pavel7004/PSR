@@ -16,8 +16,8 @@ var (
 	ErrPlayerNotPresent   = errors.New("The player isn't exist in the room")
 )
 
-type Room struct {
-	config        *RoomConfig
+type Game struct {
+	Config        *GameConfig
 	players       []*domain.Player
 	combinations  []PlayerChoice
 	state         State
@@ -27,9 +27,9 @@ type Room struct {
 	scoremanager  *ScoreManager
 }
 
-func NewRoom(config *RoomConfig, obs *subscribe.Publisher) *Room {
-	room := Room{
-		config:        config,
+func NewGame(config *GameConfig, obs *subscribe.Publisher) *Game {
+	room := Game{
+		Config:        config,
 		players:       make([]*domain.Player, 0, config.MaxPlayerCount),
 		combinations:  []PlayerChoice{},
 		state:         nil,
@@ -42,7 +42,7 @@ func NewRoom(config *RoomConfig, obs *subscribe.Publisher) *Room {
 	return &room
 }
 
-func (room *Room) HasPlayer(playerName string) bool {
+func (room *Game) HasPlayer(playerName string) bool {
 	for _, pl := range room.players {
 		if pl.GetID() == playerName {
 			return true
@@ -51,22 +51,22 @@ func (room *Room) HasPlayer(playerName string) bool {
 	return false
 }
 
-func (room *Room) AddPlayer(player *domain.Player) error {
+func (room *Game) AddPlayer(player *domain.Player) error {
 	return room.state.AddPlayer(player)
 }
 
-func (room *Room) Choose(choice *PlayerChoice) error {
+func (room *Game) Choose(choice *PlayerChoice) error {
 	return room.state.Choose(choice)
 }
 
-func (room *Room) GetLeader() (string, error) {
+func (room *Game) GetLeader() (string, error) {
 	return room.state.GetLeader()
 }
 
-func (room *Room) GetPlayerScore(name string) (int, error) {
+func (room *Game) GetPlayerScore(name string) (uint64, error) {
 	return room.state.GetPlayerScore(name)
 }
 
-func (room *Room) IncPlayerScore(name string) error {
+func (room *Game) IncPlayerScore(name string) error {
 	return room.state.IncPlayerScore(name)
 }

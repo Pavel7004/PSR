@@ -2,9 +2,10 @@ package room
 
 import "time"
 
-type RoomConfig struct {
+type GameConfig struct {
+	Name           string
 	StepTimeout    time.Duration
 	MaxPlayerCount int
-	MaxScore       int
+	MaxScore       uint64
 	OnlyComputer   bool
 }

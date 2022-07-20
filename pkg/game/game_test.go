@@ -11,7 +11,7 @@ import (
 	. "github.com/pavel/PSR/pkg/winner-definer"
 )
 
-func TestRoom_AddPlayer(t *testing.T) {
+func TestGame_AddPlayer(t *testing.T) {
 	type args struct {
 		player *domain.Player
 	}
@@ -25,9 +25,9 @@ func TestRoom_AddPlayer(t *testing.T) {
 			domain.NewPlayer("Player 2"),
 		},
 	}
-	initTestRoomFn := func(config *RoomConfig, isRunning bool, players []*domain.Player) *Room {
+	initTestGameFn := func(config *GameConfig, isRunning bool, players []*domain.Player) *Game {
 		pub := subscribe.NewPublisher()
-		room := NewRoom(config, pub)
+		room := NewGame(config, pub)
 		if isRunning {
 			room.state = NewPlayingState(room)
 		}
@@ -38,40 +38,40 @@ func TestRoom_AddPlayer(t *testing.T) {
 	}
 	tests := []struct {
 		name                string
-		roomConfig          *RoomConfig
+		roomConfig          *GameConfig
 		isRunning           bool
 		players             []*domain.Player
-		initFn              func(config *RoomConfig, isRunning bool, players []*domain.Player) *Room
+		initFn              func(config *GameConfig, isRunning bool, players []*domain.Player) *Game
 		args                args
 		expectedRoomStarted bool
 		wantErr             bool
 	}{
 		{
 			name:                "Test adding player in active game",
-			roomConfig:          &RoomConfig{2 * time.Second, 2, 5, false},
+			roomConfig:          &GameConfig{"", 2 * time.Second, 2, 5, false},
 			isRunning:           true,
 			players:             []*domain.Player{domain.NewPlayer("Existing player 1"), domain.NewPlayer("Existing player 2")},
-			initFn:              initTestRoomFn,
+			initFn:              initTestGameFn,
 			args:                args{domain.NewPlayer("testPlayer")},
 			expectedRoomStarted: false,
 			wantErr:             true,
 		},
 		{
 			name:                "Adding player",
-			roomConfig:          &RoomConfig{2 * time.Second, 2, 5, false},
+			roomConfig:          &GameConfig{"", 2 * time.Second, 2, 5, false},
 			isRunning:           false,
 			players:             []*domain.Player{},
-			initFn:              initTestRoomFn,
+			initFn:              initTestGameFn,
 			args:                args{testPlayers["Adding player"][0]},
 			expectedRoomStarted: false,
 			wantErr:             false,
 		},
 		{
 			name:                "Adding last player",
-			roomConfig:          &RoomConfig{2 * time.Second, 2, 5, false},
+			roomConfig:          &GameConfig{"", 2 * time.Second, 2, 5, false},
 			isRunning:           false,
 			players:             testPlayers["Adding last player"],
-			initFn:              initTestRoomFn,
+			initFn:              initTestGameFn,
 			args:                args{testPlayers["Adding last player"][1]},
 			expectedRoomStarted: false,
 			wantErr:             false,
@@ -93,10 +93,10 @@ func TestRoom_AddPlayer(t *testing.T) {
 	}
 }
 
-func TestRoom_Choose(t *testing.T) {
-	initTestRoomFn := func(config *RoomConfig, isRunning bool, existingChoices []PlayerChoice) *Room {
+func TestGame_Choose(t *testing.T) {
+	initTestRoomFn := func(config *GameConfig, isRunning bool, existingChoices []PlayerChoice) *Game {
 		pub := subscribe.NewPublisher()
-		room := NewRoom(config, pub)
+		room := NewGame(config, pub)
 		for i := 0; i < config.MaxPlayerCount; i++ {
 			room.players = append(room.players, domain.NewPlayer(fmt.Sprintf("TestPlayer%d", i+1)))
 		}
@@ -111,8 +111,8 @@ func TestRoom_Choose(t *testing.T) {
 	}
 	tests := []struct {
 		name             string
-		config           *RoomConfig
-		initFn           func(config *RoomConfig, isRunning bool, existingChoices []PlayerChoice) *Room
+		config           *GameConfig
+		initFn           func(config *GameConfig, isRunning bool, existingChoices []PlayerChoice) *Game
 		initCombinations []PlayerChoice
 		isStarted        bool
 		winners          []string
@@ -121,7 +121,7 @@ func TestRoom_Choose(t *testing.T) {
 	}{
 		{
 			name:             "Try to choose in non-started room",
-			config:           &RoomConfig{2 * time.Second, 2, 5, false},
+			config:           &GameConfig{"", 2 * time.Second, 2, 5, false},
 			initFn:           initTestRoomFn,
 			initCombinations: []PlayerChoice{},
 			isStarted:        false,
@@ -131,7 +131,7 @@ func TestRoom_Choose(t *testing.T) {
 		},
 		{
 			name:             "Choose in playing state",
-			config:           &RoomConfig{2 * time.Second, 2, 5, false},
+			config:           &GameConfig{"", 2 * time.Second, 2, 5, false},
 			initFn:           initTestRoomFn,
 			initCombinations: []PlayerChoice{},
 			isStarted:        true,
@@ -141,7 +141,7 @@ func TestRoom_Choose(t *testing.T) {
 		},
 		{
 			name:             "Choose with player not present",
-			config:           &RoomConfig{2 * time.Second, 2, 5, false},
+			config:           &GameConfig{"", 2 * time.Second, 2, 5, false},
 			initFn:           initTestRoomFn,
 			initCombinations: []PlayerChoice{},
 			isStarted:        true,
@@ -151,7 +151,7 @@ func TestRoom_Choose(t *testing.T) {
 		},
 		{
 			name:             "Last player choose",
-			config:           &RoomConfig{2 * time.Second, 2, 5, false},
+			config:           &GameConfig{"", 2 * time.Second, 2, 5, false},
 			initFn:           initTestRoomFn,
 			initCombinations: []PlayerChoice{{PlayerID: "TestPlayer1", Input: 0}},
 			isStarted:        true,
@@ -161,7 +161,7 @@ func TestRoom_Choose(t *testing.T) {
 		},
 		{
 			name:             "Last player choose, check winners",
-			config:           &RoomConfig{2 * time.Second, 2, 5, false},
+			config:           &GameConfig{"", 2 * time.Second, 2, 5, false},
 			initFn:           initTestRoomFn,
 			initCombinations: []PlayerChoice{{PlayerID: "TestPlayer1", Input: 0}},
 			isStarted:        true,
@@ -191,10 +191,10 @@ func TestRoom_Choose(t *testing.T) {
 	}
 }
 
-func TestRoom_HasPlayer(t *testing.T) {
-	initTestRoomFn := func(config *RoomConfig, players []*domain.Player) *Room {
+func TestGame_HasPlayer(t *testing.T) {
+	initTestRoomFn := func(config *GameConfig, players []*domain.Player) *Game {
 		pub := subscribe.NewPublisher()
-		room := NewRoom(config, pub)
+		room := NewGame(config, pub)
 		room.players = players
 		return room
 	}
@@ -203,15 +203,15 @@ func TestRoom_HasPlayer(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		config  *RoomConfig
-		initFn  func(config *RoomConfig, players []*domain.Player) *Room
+		config  *GameConfig
+		initFn  func(config *GameConfig, players []*domain.Player) *Game
 		players []*domain.Player
 		args    args
 		want    bool
 	}{
 		{
 			name:    "Has player",
-			config:  &RoomConfig{2 * time.Second, 2, 5, false},
+			config:  &GameConfig{"", 2 * time.Second, 2, 5, false},
 			initFn:  initTestRoomFn,
 			players: []*domain.Player{domain.NewPlayer("Player1")},
 			args:    args{playerName: "Player1"},
@@ -219,7 +219,7 @@ func TestRoom_HasPlayer(t *testing.T) {
 		},
 		{
 			name:    "player in not in the room",
-			config:  &RoomConfig{2 * time.Second, 2, 5, false},
+			config:  &GameConfig{"", 2 * time.Second, 2, 5, false},
 			initFn:  initTestRoomFn,
 			players: []*domain.Player{domain.NewPlayer("Player1")},
 			args:    args{playerName: "Player2"},
