@@ -24,52 +24,6 @@ func TestNewPublisher(t *testing.T) {
 	}
 }
 
-func TestPublisher_HasTopic(t *testing.T) {
-	type fields struct {
-		topics map[string][]ISubscriber
-	}
-	type args struct {
-		topic string
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   bool
-	}{
-		{
-			name: "Has topic",
-			fields: fields{
-				topics: map[string][]ISubscriber{
-					"topik 1": {},
-					"topik 2": {},
-				},
-			},
-			args: args{topic: "topik 1"},
-			want: true,
-		},
-		{
-			name: "Hasn't topic",
-			fields: fields{
-				topics: map[string][]ISubscriber{
-					"topik 1": {},
-					"topik 2": {},
-				},
-			},
-			args: args{topic: "topik 3"},
-			want: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			p := &Publisher{topics: tt.fields.topics}
-			if got := p.HasTopic(tt.args.topic); got != tt.want {
-				t.Errorf("Publisher.HasTopic() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestPublisher_Publish(t *testing.T) {
 	type fields struct {
 		topics map[string][]ISubscriber
@@ -95,13 +49,6 @@ func TestPublisher_Publish(t *testing.T) {
 		expected string
 		wantErr  bool
 	}{
-		{
-			name:     "Topic not exist",
-			fields:   fields{map[string][]ISubscriber{"topic 1": {}}},
-			args:     args{"Some topic", "msg"},
-			expected: "",
-			wantErr:  true,
-		},
 		{
 			name:     "Topic exists, msg received",
 			fields:   fields{map[string][]ISubscriber{"topic 1": testSubscribers["Topic exists, msg received"]}},

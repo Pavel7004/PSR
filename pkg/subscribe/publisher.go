@@ -20,26 +20,20 @@ func NewPublisher() *Publisher {
 	}
 }
 
-func (p *Publisher) HasTopic(topic string) bool {
-	_, exist := p.topics[topic]
-	return exist
-}
-
 func (p *Publisher) Publish(topic string, msg interface{}) error {
-	if !p.HasTopic(topic) {
-		return ErrTopicNotPresent
-	}
 	for _, sub := range p.topics[topic] {
 		if err := sub.Send(msg); err != nil {
 			log.Error().Err(err).Msgf("publish error, topic: %s, msg: %v", topic, msg)
 			return err
 		}
 	}
+
 	return nil
 }
 
 func (p *Publisher) Subscribe(sub ISubscriber, topic string) error {
-	if p.HasTopic(topic) {
+	_, exist := p.topics[topic]
+	if exist {
 		p.topics[topic] = append(p.topics[topic], sub)
 	} else {
 		p.topics[topic] = []ISubscriber{sub}
