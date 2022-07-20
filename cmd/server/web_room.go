@@ -52,12 +52,11 @@ func NewWebRoom(name string, config *room.RoomConfig) *WebRoom {
 }
 
 func (r *WebRoom) RoundProcess() {
-	winners, err := r.winnersSub.Receive().([]string)
-	if !err {
+	winners, ok := r.winnersSub.Receive().([]string)
+	if !ok {
 		log.Error().Msgf("[WebRoom:%s] Received wrong winners type, got = %T, expected = []string", r.name, winners)
 		return
 	}
-
 	messages := map[winType]string{
 		WIN:  "You won!",
 		LOSE: fmt.Sprintf("You lost! Winners: %s", strings.Join(winners, ", ")),
@@ -75,17 +74,13 @@ func (r *WebRoom) RoundProcess() {
 		}
 		return winStatus
 	}
-
 	for _, name := range winners {
-		err := r.room.IncPlayerScore(name)
-		if err != nil {
+		if err := r.room.IncPlayerScore(name); err != nil {
 			log.Error().Err(err).Msgf("[WebRoom:%s] Incrementing score for player \"%s\" error", r.name, name)
 		}
 	}
-
 	for conn, name := range r.connectionToPlayer {
-		err := conn.WriteMessage(websocket.TextMessage, []byte(messages[getMessage(name)]))
-		if err != nil {
+		if err := conn.WriteMessage(websocket.TextMessage, []byte(messages[getMessage(name)])); err != nil {
 			log.Error().Err(err).Msgf("[WebRoom:%s] Error sending winner signal to player \"%s\"", r.name, name)
 		}
 	}
@@ -95,23 +90,22 @@ func (r *WebRoom) Main() {
 	r.roomStateSub.Receive()
 	startMsg := []byte("Игра началась")
 	for conn := range r.connectionToPlayer {
-		err := conn.WriteMessage(websocket.TextMessage, startMsg)
-		if err != nil {
+		if err := conn.WriteMessage(websocket.TextMessage, startMsg); err != nil {
 			log.Error().Err(err).Msgf("[WebRoom:%s] Error sending message \"%s\"", r.name, startMsg)
 		}
 	}
 	for {
 		r.RoundProcess()
-		leadingPlayer, err := r.room.MaxScore()
+		leadingPlayerName, err := r.room.GetLeader()
 		if err != nil {
 			log.Warn().Err(err).Msgf("[WebRoom:%s] Error Getting max score", r.name)
 			break
 		}
-		if leadingPlayer.GetScore() == r.config.MaxScore {
-			conn := r.playerToConnection[leadingPlayer.GetID()]
-			err = conn.WriteMessage(websocket.TextMessage, []byte("Score win"))
-			if err != nil {
-				log.Error().Err(err).Msgf("[WebRoom:%s] Error sending message to player \"%s\"", r.name, leadingPlayer.GetID())
+		leadingPlayerScore, err := r.room.GetPlayerScore(leadingPlayerName)
+		if leadingPlayerScore == r.config.MaxScore {
+			conn := r.playerToConnection[leadingPlayerName]
+			if err := conn.WriteMessage(websocket.TextMessage, []byte("Score win")); err != nil {
+				log.Error().Err(err).Msgf("[WebRoom:%s] Error sending message to player \"%s\"", r.name, leadingPlayerName)
 			}
 			break
 		}
@@ -121,8 +115,7 @@ func (r *WebRoom) Main() {
 
 func (r *WebRoom) CloseConnections() {
 	for conn, id := range r.connectionToPlayer {
-		err := conn.Close()
-		if err != nil {
+		if err := conn.Close(); err != nil {
 			log.Warn().Err(err).Msgf("[WebRoom:%s] Player \"%s\": closing connection error", r.name, id)
 		}
 		log.Info().Msgf("[WebRoom:%s] Player \"%s\": connection closed", r.name, id)
@@ -130,8 +123,7 @@ func (r *WebRoom) CloseConnections() {
 }
 
 func (r *WebRoom) AddPlayer(id string, conn *websocket.Conn) {
-	err := r.room.AddPlayer(domain.NewPlayer(id))
-	if err != nil {
+	if err := r.room.AddPlayer(domain.NewPlayer(id)); err != nil {
 		log.Error().Err(err).Msgf("[WebRoom:%s] Error adding player \"%s\"", r.name, id)
 		return
 	}

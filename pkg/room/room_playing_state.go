@@ -24,37 +24,42 @@ func (s *PlayingState) Choose(choice *PlayerChoice) error {
 	if !s.room.HasPlayer(choice.PlayerID) {
 		return ErrPlayerNotPresent
 	}
+
 	s.room.combinations = append(s.room.combinations, *choice)
 	if len(s.room.combinations) == len(s.room.players) {
 		winners := s.room.winnerDefiner.GetWinners(s.room.combinations)
 		log.Info().Msgf("Winners: %v", winners)
-		s.room.observer.Publish("winners", winners)
+
+		err := s.room.observer.Publish("winners", winners)
 		s.room.combinations = make([]PlayerChoice, 0, s.room.config.MaxPlayerCount)
+
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to publish event \"winners\"")
+			return err
+		}
 	}
+
 	return nil
 }
 
-func (s *PlayingState) MaxScore() (*domain.Player, error) {
-	maxScore := -1
-	var maxScorePlayer *domain.Player
-	for _, player := range s.room.players {
-		if player.GetScore() > maxScore {
-			maxScorePlayer = player
-			maxScore = player.GetScore()
-		}
+func (s *PlayingState) GetLeader() (string, error) {
+	return s.room.scoremanager.GetLeadingPlayerName(), nil
+}
+
+func (s *PlayingState) GetPlayerScore(name string) (int, error) {
+	score, err := s.room.scoremanager.GetPlayerScore(name)
+	if err != nil {
+		return -1, ErrPlayerNotPresent
 	}
-	if maxScore == -1 {
-		return nil, ErrPlayerNotPresent
-	}
-	return maxScorePlayer, nil
+
+	return score, nil
 }
 
 func (s *PlayingState) IncPlayerScore(name string) error {
-	for _, player := range s.room.players {
-		if player.GetID() == name {
-			player.IncrementScore()
-			return nil
-		}
+	if err := s.room.scoremanager.IncrementPlayerScore(name); err != nil {
+		log.Error().Err(err).Msgf("Player \"%s\" not found by score_manager", name)
+		return ErrPlayerNotPresent
 	}
-	return ErrPlayerNotPresent
+
+	return nil
 }
