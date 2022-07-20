@@ -24,19 +24,26 @@ func (s *PlayingState) Choose(choice *PlayerChoice) error {
 	if !s.room.HasPlayer(choice.PlayerID) {
 		return ErrPlayerNotPresent
 	}
+
 	s.room.combinations = append(s.room.combinations, *choice)
 	if len(s.room.combinations) == len(s.room.players) {
 		winners := s.room.winnerDefiner.GetWinners(s.room.combinations)
 		log.Info().Msgf("Winners: %v", winners)
-		s.room.observer.Publish("winners", winners)
+
+		err := s.room.observer.Publish("winners", winners)
 		s.room.combinations = make([]PlayerChoice, 0, s.room.config.MaxPlayerCount)
+
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to publish event \"winners\"")
+			return err
+		}
 	}
+
 	return nil
 }
 
 func (s *PlayingState) GetLeader() (string, error) {
-	name := s.room.scoremanager.GetLeadingPlayerName()
-	return name, nil
+	return s.room.scoremanager.GetLeadingPlayerName(), nil
 }
 
 func (s *PlayingState) GetPlayerScore(name string) (int, error) {
