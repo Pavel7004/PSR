@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
 	room "github.com/pavel/PSR/pkg/game"
+	web "github.com/pavel/PSR/pkg/room"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -25,7 +26,7 @@ func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	r := chi.NewRouter()
 
-	wRoom := NewWebRoom(&room.GameConfig{
+	wRoom := web.NewRoom(&room.GameConfig{
 		Name:           "test",
 		StepTimeout:    5 * time.Second,
 		MaxPlayerCount: 3,

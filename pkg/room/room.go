@@ -1,4 +1,4 @@
-package main
+package room
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type WebRoom struct {
+type Room struct {
 	room               *room.Game
 	mtx                *sync.Mutex
 	connectionToPlayer map[*websocket.Conn]string
@@ -30,14 +30,14 @@ const (
 	TIE
 )
 
-func NewWebRoom(cfg *room.GameConfig) *WebRoom {
+func NewRoom(cfg *room.GameConfig) *Room {
 	p := subscribe.NewPublisher()
 	rm := room.NewGame(cfg, p)
 	subRoomState := subscribe.NewSubscriber(0)
 	p.Subscribe(subRoomState, "room_started")
 	subWinners := subscribe.NewSubscriber(0)
 	p.Subscribe(subWinners, "winners")
-	return &WebRoom{
+	return &Room{
 		room:               rm,
 		mtx:                new(sync.Mutex),
 		connectionToPlayer: make(map[*websocket.Conn]string, cfg.MaxPlayerCount),
@@ -47,7 +47,7 @@ func NewWebRoom(cfg *room.GameConfig) *WebRoom {
 	}
 }
 
-func (r *WebRoom) RoundProcess() {
+func (r *Room) RoundProcess() {
 	winners, ok := r.winnersSub.Receive().([]string)
 	if !ok {
 		log.Error().Msgf("Received wrong winners type, got = %T, expected = []string", winners)
@@ -82,7 +82,7 @@ func (r *WebRoom) RoundProcess() {
 	}
 }
 
-func (r *WebRoom) Main() {
+func (r *Room) Main() {
 	r.roomStateSub.Receive()
 	startMsg := []byte("Игра началась")
 	for conn := range r.connectionToPlayer {
@@ -109,7 +109,7 @@ func (r *WebRoom) Main() {
 	r.CloseConnections()
 }
 
-func (r *WebRoom) CloseConnections() {
+func (r *Room) CloseConnections() {
 	for conn, id := range r.connectionToPlayer {
 		if err := conn.Close(); err != nil {
 			log.Warn().Err(err).Msgf("Player \"%s\": closing connection error", id)
@@ -118,7 +118,7 @@ func (r *WebRoom) CloseConnections() {
 	}
 }
 
-func (r *WebRoom) AddPlayer(id string, conn *websocket.Conn) {
+func (r *Room) AddPlayer(id string, conn *websocket.Conn) {
 	if err := r.room.AddPlayer(domain.NewPlayer(id)); err != nil {
 		log.Error().Err(err).Msgf("Error adding player \"%s\"", id)
 		return
@@ -131,7 +131,7 @@ func (r *WebRoom) AddPlayer(id string, conn *websocket.Conn) {
 	go r.listenConn(conn)
 }
 
-func (r *WebRoom) listenConn(conn *websocket.Conn) {
+func (r *Room) listenConn(conn *websocket.Conn) {
 	for {
 		tMsg, msg, err := conn.ReadMessage()
 		if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
