@@ -21,12 +21,19 @@ func (s *WaitingState) AddPlayer(player *domain.Player) error {
 	s.room.stepMtx.Lock()
 	s.room.players = append(s.room.players, player)
 	log.Info().Msgf("Player %s added to the room", player.GetID())
+
 	if len(s.room.players) == s.room.config.MaxPlayerCount {
 		s.room.state = NewPlayingState(s.room)
 		s.room.scoremanager = NewScoreManager(s.room.players)
 		log.Info().Msg("Room started")
-		s.room.observer.Publish("room_started", struct{}{})
+
+		err := s.room.observer.Publish("room_started", struct{}{})
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to publish event \"room_started\"")
+			return err
+		}
 	}
+
 	s.room.stepMtx.Unlock()
 	return nil
 }
