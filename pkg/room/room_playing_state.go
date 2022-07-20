@@ -51,6 +51,7 @@ func (s *PlayingState) GetPlayerScore(name string) (int, error) {
 	if err != nil {
 		return -1, ErrPlayerNotPresent
 	}
+
 	return score, nil
 }
 
@@ -59,5 +60,6 @@ func (s *PlayingState) IncPlayerScore(name string) error {
 		log.Error().Err(err).Msgf("Player \"%s\" not found by score_manager", name)
 		return ErrPlayerNotPresent
 	}
+
 	return nil
 }
