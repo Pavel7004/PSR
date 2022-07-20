@@ -11,11 +11,11 @@ var (
 )
 
 type ScoreManager struct {
-	playersScores map[string]int
+	playersScores map[string]uint64
 }
 
 func NewScoreManager(players []*domain.Player) *ScoreManager {
-	newScores := make(map[string]int, len(players))
+	newScores := make(map[string]uint64, len(players))
 	for _, name := range players {
 		newScores[name.GetID()] = 0
 	}
@@ -24,7 +24,7 @@ func NewScoreManager(players []*domain.Player) *ScoreManager {
 	}
 }
 
-func (sm *ScoreManager) GetPlayerScore(name string) (int, error) {
+func (sm *ScoreManager) GetPlayerScore(name string) (uint64, error) {
 	val, ok := sm.playersScores[name]
 	if !ok {
 		return 0, ErrPlayerNotFound
@@ -43,8 +43,8 @@ func (sm *ScoreManager) IncrementPlayerScore(name string) error {
 
 func (sm *ScoreManager) GetLeadingPlayerName() string {
 	var (
-		maxScore = -1
-		maxName  = ""
+		maxScore uint64
+		maxName  string
 	)
 	for name, score := range sm.playersScores {
 		if score > maxScore {

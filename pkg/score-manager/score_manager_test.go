@@ -19,7 +19,7 @@ func TestNewScoreManager(t *testing.T) {
 		{
 			name: "Generate new score manager",
 			args: args{players: []*domain.Player{domain.NewPlayer("test")}},
-			want: &ScoreManager{playersScores: map[string]int{"test": 0}},
+			want: &ScoreManager{playersScores: map[string]uint64{"test": 0}},
 		},
 	}
 	for _, tt := range tests {
@@ -33,7 +33,7 @@ func TestNewScoreManager(t *testing.T) {
 
 func TestScoreManager_GetPlayerScore(t *testing.T) {
 	type fields struct {
-		playersScores map[string]int
+		playersScores map[string]uint64
 	}
 	type args struct {
 		name string
@@ -42,19 +42,19 @@ func TestScoreManager_GetPlayerScore(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    int
+		want    uint64
 		wantErr bool
 	}{
 		{
 			name:    "Player is not present",
-			fields:  fields{playersScores: map[string]int{"test": 3}},
+			fields:  fields{playersScores: map[string]uint64{"test": 3}},
 			args:    args{"NotExist"},
 			want:    0,
 			wantErr: true,
 		},
 		{
 			name:    "Get player score",
-			fields:  fields{playersScores: map[string]int{"test": 4}},
+			fields:  fields{playersScores: map[string]uint64{"test": 4}},
 			args:    args{name: "test"},
 			want:    4,
 			wantErr: false,
@@ -79,7 +79,7 @@ func TestScoreManager_GetPlayerScore(t *testing.T) {
 
 func TestScoreManager_IncrementPlayerScore(t *testing.T) {
 	type fields struct {
-		playersScores map[string]int
+		playersScores map[string]uint64
 	}
 	type args struct {
 		name string
@@ -88,19 +88,19 @@ func TestScoreManager_IncrementPlayerScore(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		wantVal int
+		wantVal uint64
 		wantErr bool
 	}{
 		{
 			name:    "Player isn't present",
-			fields:  fields{playersScores: map[string]int{"test": 1}},
+			fields:  fields{playersScores: map[string]uint64{"test": 1}},
 			args:    args{name: "NotExist"},
 			wantVal: 0,
 			wantErr: true,
 		},
 		{
 			name:    "Increment existing player value",
-			fields:  fields{playersScores: map[string]int{"test": 0}},
+			fields:  fields{playersScores: map[string]uint64{"test": 0}},
 			args:    args{"test"},
 			wantVal: 1,
 			wantErr: false,
@@ -123,7 +123,7 @@ func TestScoreManager_IncrementPlayerScore(t *testing.T) {
 
 func TestScoreManager_ResetPlayersScores(t *testing.T) {
 	type fields struct {
-		playersScores map[string]int
+		playersScores map[string]uint64
 	}
 	tests := []struct {
 		name   string
@@ -132,7 +132,7 @@ func TestScoreManager_ResetPlayersScores(t *testing.T) {
 		{
 			name: "Reset all scores",
 			fields: fields{
-				playersScores: map[string]int{
+				playersScores: map[string]uint64{
 					"test1": 3,
 					"test2": 6,
 					"test3": 10,
@@ -159,7 +159,7 @@ func TestScoreManager_ResetPlayersScores(t *testing.T) {
 
 func TestScoreManager_GetLeadingPlayerName(t *testing.T) {
 	type fields struct {
-		playersScores map[string]int
+		playersScores map[string]uint64
 	}
 	tests := []struct {
 		name   string
@@ -169,13 +169,13 @@ func TestScoreManager_GetLeadingPlayerName(t *testing.T) {
 	}{
 		{
 			name:   "Get max score",
-			fields: fields{playersScores: map[string]int{"test1": 1, "test2": 2, "test3": 3}},
+			fields: fields{playersScores: map[string]uint64{"test1": 1, "test2": 2, "test3": 3}},
 			want:   "test3",
 			want1:  3,
 		},
 		{
 			name:   "No players in the room",
-			fields: fields{playersScores: map[string]int{}},
+			fields: fields{playersScores: map[string]uint64{}},
 			want:   "",
 			want1:  -1,
 		},
