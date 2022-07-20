@@ -34,37 +34,45 @@ func main() {
 	go wRoom.Main()
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		tmpl, _ := template.ParseFiles("templates/index.html")
-		tmpl.Execute(w, nil)
+		tmpl, err := template.ParseFiles("templates/index.html")
+		if err != nil {
+			log.Warn().Err(err).Msg("Failed to parse \"templates/index.html\"")
+		}
+
+		if err := tmpl.Execute(w, nil); err != nil {
+			log.Error().Err(err).Msg("Failed to execute \"templates/index.html\"")
+		}
 	})
 
 	r.Get("/game", func(w http.ResponseWriter, r *http.Request) {
 		id := r.URL.Query().Get("id")
-		tmpl, _ := template.ParseFiles("templates/game.html")
-		tmpl.Execute(w, struct {
+
+		tmpl, err := template.ParseFiles("templates/game.html")
+		if err != nil {
+			log.Warn().Err(err).Msg("Failed to parse \"templates/game.html\"")
+		}
+
+		err = tmpl.Execute(w, struct {
 			ID string
 		}{
 			ID: id,
 		})
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to execute \"templates/game.html\"")
+		}
 	})
 
 	r.Get("/echo", func(w http.ResponseWriter, r *http.Request) {
 		id := r.URL.Query().Get("id")
+
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			http.Error(w, "Upgrade socket error", 500)
 			return
 		}
+
 		wRoom.AddPlayer(id, conn)
 	})
-
-	// r := new(router)
-	// r.Get("/kjhghjkl", EchoHandler)
-	// r.Get("/kjhghjkl", EchoHandler)
-	// r.Get("/kjhghjkl", EchoHandler)
-	// r.Get("/kjhghjkl", EchoHandler)
-
-	// return r
 
 	workDir, err := os.Getwd()
 	if err != nil {
@@ -74,7 +82,7 @@ func main() {
 	filesDir := http.Dir(filepath.Join(workDir, "static"))
 	FileServer(r, "/static", filesDir)
 
-	log.Info().Msg("Server started")
+	log.Info().Msg("Server started on port 3000")
 	http.ListenAndServe(":3000", r)
 }
 
