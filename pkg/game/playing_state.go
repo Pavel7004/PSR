@@ -1,4 +1,4 @@
-package room
+package game
 
 import (
 	"github.com/pavel/PSR/pkg/domain"
