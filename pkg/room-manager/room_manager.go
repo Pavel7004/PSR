@@ -33,9 +33,13 @@ func (rm *RoomManager) CreateRoom(cfg *room.RoomConfig) error {
 		return err
 	}
 
+	room := room.NewRoom(cfg)
+
 	rm.mtx.Lock()
-	rm.rooms[cfg.Name] = room.NewRoom(cfg)
+	rm.rooms[cfg.Name] = room
 	rm.mtx.Unlock()
+
+	go room.Main()
 
 	return nil
 }
