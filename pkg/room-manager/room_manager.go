@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/pavel/PSR/pkg/room"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -30,10 +31,15 @@ func New() *RoomManager {
 func (rm *RoomManager) CreateRoom(cfg *room.RoomConfig) error {
 	err := rm.CheckRoomConfig(cfg)
 	if err != nil {
+		log.Warn().Err(err).Msg("Bad room config.")
 		return err
 	}
 
-	room := room.NewRoom(cfg)
+	room, err := room.NewRoom(cfg)
+	if err != nil {
+		log.Warn().Err(err).Msg("Can't create new room.")
+		return err
+	}
 
 	rm.mtx.Lock()
 	rm.rooms[cfg.Name] = room
