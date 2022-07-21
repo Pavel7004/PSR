@@ -31,7 +31,7 @@ func (s *PlayingState) Choose(choice *PlayerChoice) error {
 		log.Info().Msgf("Winners: %v", winners)
 
 		err := s.room.observer.Publish("winners", winners)
-		s.room.combinations = make([]PlayerChoice, 0, s.room.Config.MaxPlayerCount)
+		s.room.combinations = make([]PlayerChoice, 0, len(s.room.combinations))
 
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to publish event \"winners\"")

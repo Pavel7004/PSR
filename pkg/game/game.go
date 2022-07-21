@@ -17,7 +17,6 @@ var (
 )
 
 type Game struct {
-	Config        *GameConfig
 	players       []*domain.Player
 	combinations  []PlayerChoice
 	state         State
@@ -27,10 +26,9 @@ type Game struct {
 	scoremanager  *ScoreManager
 }
 
-func NewGame(config *GameConfig, obs *subscribe.Publisher) *Game {
+func NewGame(playerCount int, obs *subscribe.Publisher) *Game {
 	room := Game{
-		Config:        config,
-		players:       make([]*domain.Player, 0, config.MaxPlayerCount),
+		players:       make([]*domain.Player, 0, playerCount),
 		combinations:  []PlayerChoice{},
 		state:         nil,
 		observer:      obs,

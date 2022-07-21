@@ -22,7 +22,7 @@ func (s *WaitingState) AddPlayer(player *domain.Player) error {
 	s.room.players = append(s.room.players, player)
 	log.Info().Msgf("Player %s added to the room", player.GetID())
 
-	if len(s.room.players) == s.room.Config.MaxPlayerCount {
+	if len(s.room.players) == cap(s.room.players) {
 		s.room.state = NewPlayingState(s.room)
 		s.room.scoremanager = NewScoreManager(s.room.players)
 		log.Info().Msg("Room started")
