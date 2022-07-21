@@ -132,7 +132,7 @@ func (r *Room) AddPlayer(id string, conn *websocket.Conn) {
 func (r *Room) listenConn(id string, conn *websocket.Conn) {
 	for {
 		tMsg, msg, err := conn.ReadMessage()
-		if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
+		if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
 			break
 		}
 		if err != nil {
