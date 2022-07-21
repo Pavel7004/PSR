@@ -4,8 +4,7 @@ import "time"
 
 type RoomConfig struct {
 	Name           string
-	StepTimeout    time.Duration
+	RoundTimeout   time.Duration
 	MaxPlayerCount int
 	MaxScore       uint64
-	OnlyComputer   bool
 }
