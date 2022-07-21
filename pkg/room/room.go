@@ -101,12 +101,19 @@ func (r *Room) Main() {
 	}
 	for {
 		r.RoundProcess()
+
 		leadingPlayerName, err := r.game.GetLeader()
 		if err != nil {
-			log.Warn().Err(err).Msg("Error Getting max score")
+			log.Warn().Err(err).Msg("Error getting leader player name")
 			break
 		}
+
 		leadingPlayerScore, err := r.game.GetPlayerScore(leadingPlayerName)
+		if err != nil {
+			log.Warn().Err(err).Msgf("Error Getting player %q score", leadingPlayerName)
+			break
+		}
+
 		if leadingPlayerScore == r.cfg.MaxScore {
 			conn := r.playerToConnection[leadingPlayerName]
 			if err := conn.WriteMessage(websocket.TextMessage, []byte("Score win")); err != nil {
