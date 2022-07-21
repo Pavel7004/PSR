@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
 	"github.com/pavel/PSR/pkg/room"
+	"github.com/pavel/PSR/pkg/room-manager"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -23,15 +24,16 @@ var upgrader = websocket.Upgrader{
 
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	r := chi.NewRouter()
 
-	wRoom := room.NewRoom(&room.RoomConfig{
+	r := chi.NewRouter()
+	rm := roommanager.New()
+
+	rm.CreateRoom(&room.RoomConfig{
 		Name:           "test",
 		RoundTimeout:   5 * time.Second,
 		MaxPlayerCount: 3,
 		MaxScore:       7,
 	})
-	go wRoom.Main()
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/index.html")
@@ -63,7 +65,8 @@ func main() {
 	})
 
 	r.Get("/echo", func(w http.ResponseWriter, r *http.Request) {
-		id := r.URL.Query().Get("id")
+		ID := r.URL.Query().Get("id")
+		roomID := r.URL.Query().Get("roomID")
 
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -71,7 +74,12 @@ func main() {
 			return
 		}
 
-		wRoom.AddPlayer(id, conn)
+		room, err := rm.GetRoomByID(roomID)
+		if err != nil {
+			log.Warn().Err(err).Msg("Failed to get room by id")
+		}
+
+		room.AddPlayer(ID, conn)
 	})
 
 	workDir, err := os.Getwd()
