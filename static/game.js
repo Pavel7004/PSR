@@ -1,14 +1,10 @@
-function getParameterByName(name, url = window.location.href) {
-  name = name.replace(/[\[\]]/g, "\\$&");
-  var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-    results = regex.exec(url);
-  if (!results) return null;
-  if (!results[2]) return "";
-  return decodeURIComponent(results[2].replace(/\+/g, " "));
-}
+const params = new Proxy(new URLSearchParams(window.location.search), {
+  get: (searchParams, prop) => searchParams.get(prop),
+});
 
-let id = getParameterByName("id");
-let socket = new WebSocket(`ws://localhost:3000/echo?id=${id}`);
+let id = params.id;
+let roomID = params.roomID;
+let socket = new WebSocket(`ws://localhost:3000/echo?id=${id}&roomID=${roomID}`);
 let statusLabel = document.getElementById('status');
 
 socket.onopen = function (e) {};

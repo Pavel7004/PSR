@@ -7,9 +7,15 @@
     <script>
         function start() {
             let name = document.getElementById("name").value;
-            window.location.replace(`/game?id=${name}`);
-        }
-    </script> <input type="text" size="40" id="name"><br>
-    <button onclick="start()">Начать игру</button><br>
+            let room = document.getElementById("roomID").value;
+            window.location.replace(`/game?id=${name}&roomID=${room}`);
+    }
+    </script> <label for="name">Имя игрока:</label> <input type=
+    "text" size="40" id="name"><br>
+    <br>
+    <label for="name">Имя комнаты:</label> <input type="text" size=
+    "40" id="roomID"><br>
+    <br>
+    <button onclick="start()">Начать игру</button>
 </body>
 </html>

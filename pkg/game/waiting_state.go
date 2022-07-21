@@ -1,4 +1,4 @@
-package room
+package game
 
 import (
 	"github.com/pavel/PSR/pkg/domain"
@@ -8,10 +8,10 @@ import (
 )
 
 type WaitingState struct {
-	room *Room
+	room *Game
 }
 
-func NewWaitingState(r *Room) *WaitingState {
+func NewWaitingState(r *Game) *WaitingState {
 	return &WaitingState{
 		room: r,
 	}
@@ -22,7 +22,7 @@ func (s *WaitingState) AddPlayer(player *domain.Player) error {
 	s.room.players = append(s.room.players, player)
 	log.Info().Msgf("Player %s added to the room", player.GetID())
 
-	if len(s.room.players) == s.room.config.MaxPlayerCount {
+	if len(s.room.players) == cap(s.room.players) {
 		s.room.state = NewPlayingState(s.room)
 		s.room.scoremanager = NewScoreManager(s.room.players)
 		log.Info().Msg("Room started")
@@ -46,8 +46,8 @@ func (s *WaitingState) GetLeader() (string, error) {
 	return "", ErrGameNotStarted
 }
 
-func (s *WaitingState) GetPlayerScore(name string) (int, error) {
-	return -1, ErrGameNotStarted
+func (s *WaitingState) GetPlayerScore(name string) (uint64, error) {
+	return 0, ErrGameNotStarted
 }
 
 func (s *WaitingState) IncPlayerScore(name string) error {
