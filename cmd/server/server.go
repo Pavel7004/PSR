@@ -2,8 +2,6 @@ package main
 
 import (
 	"net/http"
-	"path/filepath"
-	"strings"
 	"text/template"
 	"time"
 
@@ -12,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
 	"github.com/pavel/PSR/pkg/room"
-	"github.com/pavel/PSR/pkg/room-manager"
+	roommanager "github.com/pavel/PSR/pkg/room-manager"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -26,6 +24,14 @@ func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 	r := chi.NewRouter()
+	server := &http.Server{
+		Addr:              ":3000",
+		Handler:           r,
+		ReadTimeout:       10 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+	}
+
 	rm := roommanager.New()
 
 	rm.CreateRoom(&room.RoomConfig{
@@ -47,7 +53,8 @@ func main() {
 	})
 
 	r.Get("/game", func(w http.ResponseWriter, r *http.Request) {
-		id := r.URL.Query().Get("id")
+		ID := r.URL.Query().Get("id")
+		roomID := r.URL.Query().Get("roomID")
 
 		tmpl, err := template.ParseFiles("templates/game.html")
 		if err != nil {
@@ -55,9 +62,11 @@ func main() {
 		}
 
 		err = tmpl.Execute(w, struct {
-			ID string
+			ID     string
+			RoomID string
 		}{
-			ID: id,
+			ID:     ID,
+			RoomID: roomID,
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to execute \"templates/game.html\"")
@@ -76,40 +85,16 @@ func main() {
 
 		room, err := rm.GetRoomByID(roomID)
 		if err != nil {
-			log.Warn().Err(err).Msg("Failed to get room by id")
+			log.Warn().Err(err).Msgf("Failed to get room by id %q", roomID)
+			return
 		}
 
 		room.AddPlayer(ID, conn)
 	})
 
-	workDir, err := os.Getwd()
-	if err != nil {
-		log.Error().Err(err).Msg("[server] Can't list work dir")
-		return
-	}
-	filesDir := http.Dir(filepath.Join(workDir, "static"))
-	FileServer(r, "/static", filesDir)
+	fs := http.FileServer(http.Dir("./static"))
+	r.Handle("/static/*", http.StripPrefix("/static/", fs))
 
 	log.Info().Msg("Server started on port 3000")
-	http.ListenAndServe(":3000", r)
-}
-
-func FileServer(r chi.Router, path string, root http.FileSystem) {
-	if strings.ContainsAny(path, "{}*") {
-		log.Error().Msg("[server] FileServer does not permit any URL parameters")
-		return
-	}
-
-	if path != "/" && path[len(path)-1] != '/' {
-		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
-		path += "/"
-	}
-	path += "*"
-
-	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
-		rctx := chi.RouteContext(r.Context())
-		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
-		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
-		fs.ServeHTTP(w, r)
-	})
+	server.ListenAndServe()
 }
