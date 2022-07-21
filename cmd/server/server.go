@@ -34,12 +34,15 @@ func main() {
 
 	rm := roommanager.New()
 
-	rm.CreateRoom(&room.RoomConfig{
+	err := rm.CreateRoom(&room.RoomConfig{
 		Name:           "test",
 		RoundTimeout:   5 * time.Second,
 		MaxPlayerCount: 3,
 		MaxScore:       7,
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/index.html")
