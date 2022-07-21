@@ -99,5 +99,8 @@ func main() {
 	r.Handle("/static/*", http.StripPrefix("/static/", fs))
 
 	log.Info().Msg("Server started on port 3000")
-	server.ListenAndServe()
+	err = server.ListenAndServe()
+	if err != nil {
+		panic(err)
+	}
 }
