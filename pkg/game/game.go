@@ -27,7 +27,7 @@ type Game struct {
 }
 
 func NewGame(playerCount int, obs *subscribe.Publisher) *Game {
-	room := Game{
+	game := Game{
 		players:       make([]*domain.Player, 0, playerCount),
 		combinations:  []PlayerChoice{},
 		state:         nil,
@@ -36,12 +36,12 @@ func NewGame(playerCount int, obs *subscribe.Publisher) *Game {
 		winnerDefiner: new(WinnerDefiner),
 		scoremanager:  nil,
 	}
-	room.state = NewWaitingState(&room)
-	return &room
+	game.state = NewWaitingState(&game)
+	return &game
 }
 
-func (room *Game) HasPlayer(playerName string) bool {
-	for _, pl := range room.players {
+func (game *Game) HasPlayer(playerName string) bool {
+	for _, pl := range game.players {
 		if pl.GetID() == playerName {
 			return true
 		}
@@ -49,22 +49,22 @@ func (room *Game) HasPlayer(playerName string) bool {
 	return false
 }
 
-func (room *Game) AddPlayer(player *domain.Player) error {
-	return room.state.AddPlayer(player)
+func (game *Game) AddPlayer(player *domain.Player) error {
+	return game.state.AddPlayer(player)
 }
 
-func (room *Game) Choose(choice *PlayerChoice) error {
-	return room.state.Choose(choice)
+func (game *Game) Choose(choice *PlayerChoice) error {
+	return game.state.Choose(choice)
 }
 
-func (room *Game) GetLeader() (string, error) {
-	return room.state.GetLeader()
+func (game *Game) GetLeader() (string, error) {
+	return game.state.GetLeader()
 }
 
-func (room *Game) GetPlayerScore(name string) (uint64, error) {
-	return room.state.GetPlayerScore(name)
+func (game *Game) GetPlayerScore(name string) (uint64, error) {
+	return game.state.GetPlayerScore(name)
 }
 
-func (room *Game) IncPlayerScore(name string) error {
-	return room.state.IncPlayerScore(name)
+func (game *Game) IncPlayerScore(name string) error {
+	return game.state.IncPlayerScore(name)
 }
