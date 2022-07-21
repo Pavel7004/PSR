@@ -27,10 +27,9 @@ func main() {
 
 	wRoom := room.NewRoom(&room.RoomConfig{
 		Name:           "test",
-		StepTimeout:    5 * time.Second,
+		RoundTimeout:   5 * time.Second,
 		MaxPlayerCount: 3,
 		MaxScore:       7,
-		OnlyComputer:   false,
 	})
 	go wRoom.Main()
 
