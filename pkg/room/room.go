@@ -39,6 +39,7 @@ func NewRoom(cfg *RoomConfig) *Room {
 	p.Subscribe(subWinners, "winners")
 	return &Room{
 		game:               game,
+		cfg:                cfg,
 		mtx:                new(sync.Mutex),
 		playerToConnection: make(map[string]*websocket.Conn, cfg.MaxPlayerCount),
 		roomStateSub:       subRoomState,
