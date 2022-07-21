@@ -63,7 +63,7 @@ func (rm *RoomManager) CheckRoomConfig(cfg *room.RoomConfig) error {
 	return nil
 }
 
-func (rm *RoomManager) GetRoomByName(name string) (*room.Room, error) {
+func (rm *RoomManager) GetRoomByID(name string) (*room.Room, error) {
 	room, exist := rm.rooms[name]
 	if !exist {
 		return nil, ErrRoomDontExist
