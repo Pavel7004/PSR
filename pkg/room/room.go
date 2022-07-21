@@ -7,14 +7,15 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/pavel/PSR/pkg/domain"
-	room "github.com/pavel/PSR/pkg/game"
+	"github.com/pavel/PSR/pkg/game"
 	"github.com/pavel/PSR/pkg/subscribe"
 	winner_definer "github.com/pavel/PSR/pkg/winner-definer"
 	"github.com/rs/zerolog/log"
 )
 
 type Room struct {
-	room               *room.Game
+	game               *game.Game
+	cfg                *RoomConfig
 	mtx                *sync.Mutex
 	connectionToPlayer map[*websocket.Conn]string
 	playerToConnection map[string]*websocket.Conn
@@ -30,15 +31,15 @@ const (
 	TIE
 )
 
-func NewRoom(cfg *room.GameConfig) *Room {
+func NewRoom(cfg *RoomConfig) *Room {
 	p := subscribe.NewPublisher()
-	rm := room.NewGame(cfg, p)
+	game := game.NewGame(cfg.MaxPlayerCount, p)
 	subRoomState := subscribe.NewSubscriber(0)
 	p.Subscribe(subRoomState, "room_started")
 	subWinners := subscribe.NewSubscriber(0)
 	p.Subscribe(subWinners, "winners")
 	return &Room{
-		room:               rm,
+		game:               game,
 		mtx:                new(sync.Mutex),
 		connectionToPlayer: make(map[*websocket.Conn]string, cfg.MaxPlayerCount),
 		playerToConnection: make(map[string]*websocket.Conn, cfg.MaxPlayerCount),
@@ -71,7 +72,7 @@ func (r *Room) RoundProcess() {
 		return winStatus
 	}
 	for _, name := range winners {
-		if err := r.room.IncPlayerScore(name); err != nil {
+		if err := r.game.IncPlayerScore(name); err != nil {
 			log.Error().Err(err).Msgf("Incrementing score for player \"%s\" error", name)
 		}
 	}
@@ -92,13 +93,13 @@ func (r *Room) Main() {
 	}
 	for {
 		r.RoundProcess()
-		leadingPlayerName, err := r.room.GetLeader()
+		leadingPlayerName, err := r.game.GetLeader()
 		if err != nil {
 			log.Warn().Err(err).Msg("Error Getting max score")
 			break
 		}
-		leadingPlayerScore, err := r.room.GetPlayerScore(leadingPlayerName)
-		if leadingPlayerScore == r.room.Config.MaxScore {
+		leadingPlayerScore, err := r.game.GetPlayerScore(leadingPlayerName)
+		if leadingPlayerScore == r.cfg.MaxScore {
 			conn := r.playerToConnection[leadingPlayerName]
 			if err := conn.WriteMessage(websocket.TextMessage, []byte("Score win")); err != nil {
 				log.Error().Err(err).Msgf("Error sending message to player \"%s\"", leadingPlayerName)
@@ -119,7 +120,7 @@ func (r *Room) CloseConnections() {
 }
 
 func (r *Room) AddPlayer(id string, conn *websocket.Conn) {
-	if err := r.room.AddPlayer(domain.NewPlayer(id)); err != nil {
+	if err := r.game.AddPlayer(domain.NewPlayer(id)); err != nil {
 		log.Error().Err(err).Msgf("Error adding player \"%s\"", id)
 		return
 	}
@@ -155,7 +156,7 @@ func (r *Room) listenConn(conn *websocket.Conn) {
 			log.Warn().Err(err).Msgf("Player %s: invalid choice %v", r.connectionToPlayer[conn], string(msg))
 			continue
 		}
-		r.room.Choose(&winner_definer.PlayerChoice{
+		r.game.Choose(&winner_definer.PlayerChoice{
 			PlayerID: r.connectionToPlayer[conn],
 			Input:    choice,
 		})
