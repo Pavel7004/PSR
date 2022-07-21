@@ -11,6 +11,10 @@ sudo apt install golang  # For Ubuntu/Debian
 sudo pacman -S go        # For Arch/Manjaro
 #+end_src
 
+- Chi Router
+- Gorilla WebSocket
+- Zerolog
+
 * Сборка программы
 #+begin_src sh
 make build
