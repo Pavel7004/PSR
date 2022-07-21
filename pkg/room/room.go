@@ -30,13 +30,22 @@ const (
 	TIE
 )
 
-func NewRoom(cfg *RoomConfig) *Room {
+func NewRoom(cfg *RoomConfig) (*Room, error) {
 	p := subscribe.NewPublisher()
 	game := game.NewGame(cfg.MaxPlayerCount, p)
+
 	subRoomState := subscribe.NewSubscriber(0)
-	p.Subscribe(subRoomState, "room_started")
+	if err := p.Subscribe(subRoomState, "room_started"); err != nil {
+		log.Error().Err(err).Msg("Failed to subscribe to room_started event.")
+		return nil, err
+	}
+
 	subWinners := subscribe.NewSubscriber(0)
-	p.Subscribe(subWinners, "winners")
+	if err := p.Subscribe(subWinners, "winners"); err != nil {
+		log.Error().Err(err).Msg("Failed to subscribe to winners event.")
+		return nil, err
+	}
+
 	return &Room{
 		game:               game,
 		cfg:                cfg,
@@ -44,7 +53,7 @@ func NewRoom(cfg *RoomConfig) *Room {
 		playerToConnection: make(map[string]*websocket.Conn, cfg.MaxPlayerCount),
 		roomStateSub:       subRoomState,
 		winnersSub:         subWinners,
-	}
+	}, nil
 }
 
 func (r *Room) RoundProcess() {
