@@ -146,10 +146,10 @@ func (r *Room) listenConn(id string, conn *websocket.Conn) {
 			break
 		}
 		if err != nil {
-			log.Warn().Err(err).Msgf("Reading message from %s error", id)
+			log.Warn().Err(err).Msgf("Reading message from player %q error", id)
 			err = conn.Close()
 			if err != nil {
-				log.Warn().Err(err).Msgf("Error closing connection for player %s", id)
+				log.Warn().Err(err).Msgf("Error closing connection for player %q", id)
 			}
 			break
 		}
@@ -160,12 +160,12 @@ func (r *Room) listenConn(id string, conn *websocket.Conn) {
 		log.Info().Msgf("Got message from %s: %v", id, string(msg))
 		choice, err := domain.GetChoiceByName(string(msg))
 		if err != nil {
-			log.Warn().Err(err).Msgf("Player %s: invalid choice %v", id, string(msg))
+			log.Info().Err(err).Msgf("Player %q: invalid choice %v", id, string(msg))
 			continue
 		}
-		r.game.Choose(&winner_definer.PlayerChoice{
-			PlayerID: id,
-			Input:    choice,
-		})
+		if err := r.game.Choose(&winner_definer.PlayerChoice{id, choice}); err != nil {
+			log.Info().Err(err).Msgf("Can't accept player %q choice.", id)
+			continue
+		}
 	}
 }
