@@ -4,7 +4,7 @@ build:
 	@echo "------------------"
 	@echo "Building app...   "
 	@echo "------------------"
-	go build cmd/server/server.go
+	go build cmd/app/app.go
 
 lint:
 	@echo "------------------"
