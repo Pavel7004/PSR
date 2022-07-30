@@ -27,17 +27,17 @@ type Game struct {
 }
 
 func NewGame(playerCount int, obs *subscribe.Publisher) *Game {
-	game := Game{
+	game := &Game{
 		players:       make([]*domain.Player, 0, playerCount),
-		combinations:  []PlayerChoice{},
+		combinations:  make([]PlayerChoice, 0, playerCount),
 		state:         nil,
 		observer:      obs,
 		stepMtx:       new(sync.Mutex),
 		winnerDefiner: new(WinnerDefiner),
 		scoremanager:  nil,
 	}
-	game.state = NewWaitingState(&game)
-	return &game
+	game.state = NewWaitingState(game)
+	return game
 }
 
 func (game *Game) HasPlayer(playerName string) bool {
