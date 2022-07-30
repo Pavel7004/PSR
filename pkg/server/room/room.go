@@ -147,7 +147,6 @@ func (r *Room) AddPlayer(id string, conn *websocket.Conn) {
 	log.Info().Msgf("Player %s: connection established", id)
 
 	go r.listenConn(id, conn)
-
 }
 
 func (r *Room) listenConn(id string, conn *websocket.Conn) {
@@ -174,7 +173,11 @@ func (r *Room) listenConn(id string, conn *websocket.Conn) {
 			log.Info().Err(err).Msgf("Player %q: invalid choice %v", id, string(msg))
 			continue
 		}
-		if err := r.game.Choose(&wd.PlayerChoice{id, choice}); err != nil {
+		err = r.game.Choose(&wd.PlayerChoice{
+			PlayerID: id,
+			Input:    choice,
+		})
+		if err != nil {
 			log.Info().Err(err).Msgf("Can't accept player %q choice.", id)
 			continue
 		}
