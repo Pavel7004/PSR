@@ -3,7 +3,6 @@ package game
 import (
 	"fmt"
 	"reflect"
-	"sync"
 	"testing"
 
 	"github.com/pavel/PSR/pkg/domain"
@@ -34,7 +33,6 @@ func TestGame_AddPlayer(t *testing.T) {
 			combinations:  nil,
 			state:         nil,
 			observer:      subscribe.NewPublisher(),
-			mtx:           new(sync.Mutex),
 			winnerDefiner: nil,
 			scoremanager:  nil,
 		}
@@ -112,7 +110,6 @@ func TestGame_Choose(t *testing.T) {
 			combinations:  existingChoices,
 			state:         nil,
 			observer:      subscribe.NewPublisher(),
-			mtx:           nil,
 			winnerDefiner: nil,
 			scoremanager:  nil,
 		}
@@ -220,7 +217,6 @@ func TestGame_HasPlayer(t *testing.T) {
 			combinations:  nil,
 			state:         nil,
 			observer:      nil,
-			mtx:           nil,
 			winnerDefiner: nil,
 			scoremanager:  nil,
 		}
