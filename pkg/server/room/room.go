@@ -21,14 +21,6 @@ type Room struct {
 	winnersSub         *subscribe.Subscriber
 }
 
-type winType int
-
-const (
-	WIN winType = iota + 1
-	LOSE
-	TIE
-)
-
 func NewRoom(cfg *RoomConfig) (*Room, error) {
 	p := subscribe.NewPublisher()
 	game := game.NewGame(cfg.MaxPlayerCount, p)
