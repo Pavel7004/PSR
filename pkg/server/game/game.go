@@ -5,9 +5,9 @@ import (
 	"sync"
 
 	"github.com/pavel/PSR/pkg/domain"
-	. "github.com/pavel/PSR/pkg/score-manager"
-	"github.com/pavel/PSR/pkg/subscribe"
-	. "github.com/pavel/PSR/pkg/winner-definer"
+	. "github.com/pavel/PSR/pkg/server/score-manager"
+	"github.com/pavel/PSR/pkg/server/subscribe"
+	. "github.com/pavel/PSR/pkg/server/winner-definer"
 )
 
 var (

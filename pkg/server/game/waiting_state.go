@@ -2,8 +2,8 @@ package game
 
 import (
 	"github.com/pavel/PSR/pkg/domain"
-	. "github.com/pavel/PSR/pkg/score-manager"
-	. "github.com/pavel/PSR/pkg/winner-definer"
+	. "github.com/pavel/PSR/pkg/server/score-manager"
+	. "github.com/pavel/PSR/pkg/server/winner-definer"
 	"github.com/rs/zerolog/log"
 )
 

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/pavel/PSR/pkg/domain"
-	"github.com/pavel/PSR/pkg/subscribe"
-	. "github.com/pavel/PSR/pkg/winner-definer"
+	"github.com/pavel/PSR/pkg/server/subscribe"
+	. "github.com/pavel/PSR/pkg/server/winner-definer"
 )
 
 func TestGame_AddPlayer(t *testing.T) {

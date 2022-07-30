@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/pavel/PSR/pkg/room"
+	"github.com/pavel/PSR/pkg/server/room"
 	"github.com/rs/zerolog/log"
 )
 

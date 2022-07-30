@@ -7,9 +7,9 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/pavel/PSR/pkg/domain"
-	"github.com/pavel/PSR/pkg/game"
-	"github.com/pavel/PSR/pkg/subscribe"
-	winner_definer "github.com/pavel/PSR/pkg/winner-definer"
+	"github.com/pavel/PSR/pkg/server/game"
+	"github.com/pavel/PSR/pkg/server/subscribe"
+	winner_definer "github.com/pavel/PSR/pkg/server/winner-definer"
 	"github.com/rs/zerolog/log"
 )
 

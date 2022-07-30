@@ -9,8 +9,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
-	"github.com/pavel/PSR/pkg/room"
-	roommanager "github.com/pavel/PSR/pkg/room-manager"
+	"github.com/pavel/PSR/pkg/server/room"
+	roommanager "github.com/pavel/PSR/pkg/server/room-manager"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
