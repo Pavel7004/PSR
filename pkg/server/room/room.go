@@ -81,12 +81,12 @@ func (r *Room) RoundProcess() {
 	}
 	for _, name := range winners {
 		if err := r.game.IncPlayerScore(name); err != nil {
-			log.Error().Err(err).Msgf("Incrementing score for player \"%s\" error", name)
+			log.Error().Err(err).Msgf("Incrementing score for player %q error", name)
 		}
 	}
 	for name, conn := range r.playerToConnection {
 		if err := conn.WriteMessage(websocket.TextMessage, []byte(messages[getMessage(name)])); err != nil {
-			log.Error().Err(err).Msgf("Error sending winner signal to player \"%s\"", name)
+			log.Error().Err(err).Msgf("Error sending winner signal to player %q", name)
 		}
 	}
 }
@@ -96,7 +96,7 @@ func (r *Room) Main() {
 	startMsg := []byte("Игра началась")
 	for _, conn := range r.playerToConnection {
 		if err := conn.WriteMessage(websocket.TextMessage, startMsg); err != nil {
-			log.Error().Err(err).Msgf("Error sending message \"%s\"", startMsg)
+			log.Error().Err(err).Msgf("Error sending message %q", startMsg)
 		}
 	}
 	for {
@@ -117,7 +117,7 @@ func (r *Room) Main() {
 		if leadingPlayerScore == r.cfg.MaxScore {
 			conn := r.playerToConnection[leadingPlayerName]
 			if err := conn.WriteMessage(websocket.TextMessage, []byte("Score win")); err != nil {
-				log.Error().Err(err).Msgf("Error sending message to player \"%s\"", leadingPlayerName)
+				log.Error().Err(err).Msgf("Error sending message to player %q", leadingPlayerName)
 			}
 			break
 		}
@@ -128,15 +128,15 @@ func (r *Room) Main() {
 func (r *Room) CloseConnections() {
 	for id, conn := range r.playerToConnection {
 		if err := conn.Close(); err != nil {
-			log.Warn().Err(err).Msgf("Player \"%s\": closing connection error", id)
+			log.Warn().Err(err).Msgf("Player %q: closing connection error", id)
 		}
-		log.Info().Msgf("Player \"%s\": connection closed", id)
+		log.Info().Msgf("Player %q: connection closed", id)
 	}
 }
 
 func (r *Room) AddPlayer(id string, conn *websocket.Conn) {
 	if err := r.game.AddPlayer(domain.NewPlayer(id)); err != nil {
-		log.Error().Err(err).Msgf("Error adding player \"%s\"", id)
+		log.Error().Err(err).Msgf("Error adding player %q", id)
 		return
 	}
 
@@ -144,7 +144,7 @@ func (r *Room) AddPlayer(id string, conn *websocket.Conn) {
 	r.playerToConnection[id] = conn
 	r.mtx.Unlock()
 
-	log.Info().Msgf("Player %s: connection established", id)
+	log.Info().Msgf("Player %q: connection established", id)
 
 	go r.listenConn(id, conn)
 }
