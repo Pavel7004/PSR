@@ -2,7 +2,6 @@ package game
 
 import (
 	"github.com/pavel/PSR/pkg/domain"
-	. "github.com/pavel/PSR/pkg/server/score-manager"
 	. "github.com/pavel/PSR/pkg/server/winner-definer"
 	"github.com/rs/zerolog/log"
 )
@@ -20,21 +19,10 @@ func NewWaitingState(r *Game) *WaitingState {
 func (s *WaitingState) AddPlayer(player *domain.Player) error {
 	s.room.stepMtx.Lock()
 	s.room.players = append(s.room.players, player)
+	s.room.stepMtx.Unlock()
+
 	log.Info().Msgf("Player %s added to the room", player.GetID())
 
-	if len(s.room.players) == cap(s.room.players) {
-		s.room.state = NewPlayingState(s.room)
-		s.room.scoremanager = NewScoreManager(s.room.players)
-		log.Info().Msg("Room started")
-
-		err := s.room.observer.Publish("room_started", struct{}{})
-		if err != nil {
-			log.Error().Err(err).Msg("Failed to publish event \"room_started\"")
-			return err
-		}
-	}
-
-	s.room.stepMtx.Unlock()
 	return nil
 }
 

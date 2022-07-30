@@ -49,6 +49,19 @@ func (game *Game) HasPlayer(playerName string) bool {
 	return false
 }
 
+func (game *Game) GetPlayerCount() int {
+	return len(game.players)
+}
+
+func (game *Game) Start() {
+	game.state = NewPlayingState(game)
+	game.scoremanager = NewScoreManager(game.players)
+}
+
+func (game *Game) ResetCombinations() {
+	game.combinations = make([]PlayerChoice, 0, len(game.combinations))
+}
+
 func (game *Game) AddPlayer(player *domain.Player) error {
 	return game.state.AddPlayer(player)
 }
