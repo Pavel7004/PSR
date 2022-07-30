@@ -45,7 +45,7 @@ func (rm *RoomManager) CreateRoom(cfg *room.RoomConfig) error {
 	rm.rooms[cfg.Name] = room
 	rm.mtx.Unlock()
 
-	go room.Main()
+	go room.Worker()
 
 	return nil
 }

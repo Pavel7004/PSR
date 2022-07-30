@@ -91,7 +91,7 @@ func (r *Room) RoundProcess() {
 	}
 }
 
-func (r *Room) Main() {
+func (r *Room) Worker() {
 	r.roomStateSub.Receive()
 	startMsg := []byte("Игра началась")
 	for _, conn := range r.playerToConnection {
