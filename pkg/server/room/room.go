@@ -9,7 +9,7 @@ import (
 	"github.com/pavel/PSR/pkg/domain"
 	"github.com/pavel/PSR/pkg/server/game"
 	"github.com/pavel/PSR/pkg/server/subscribe"
-	winner_definer "github.com/pavel/PSR/pkg/server/winner-definer"
+	wd "github.com/pavel/PSR/pkg/server/winner-definer"
 	"github.com/rs/zerolog/log"
 )
 
@@ -170,7 +170,7 @@ func (r *Room) listenConn(id string, conn *websocket.Conn) {
 			log.Info().Err(err).Msgf("Player %q: invalid choice %v", id, string(msg))
 			continue
 		}
-		if err := r.game.Choose(&winner_definer.PlayerChoice{id, choice}); err != nil {
+		if err := r.game.Choose(&wd.PlayerChoice{id, choice}); err != nil {
 			log.Info().Err(err).Msgf("Can't accept player %q choice.", id)
 			continue
 		}
