@@ -1,6 +1,8 @@
 package game
 
 import (
+	"sync"
+
 	"github.com/pavel/PSR/pkg/domain"
 	. "github.com/pavel/PSR/pkg/server/winner-definer"
 	"github.com/rs/zerolog/log"
@@ -8,11 +10,13 @@ import (
 
 type PlayingState struct {
 	room *Game
+	mtx  *sync.Mutex
 }
 
 func NewPlayingState(r *Game) *PlayingState {
 	return &PlayingState{
 		room: r,
+		mtx:  new(sync.Mutex),
 	}
 }
 
@@ -25,7 +29,10 @@ func (s *PlayingState) Choose(choice *PlayerChoice) error {
 		return ErrPlayerNotPresent
 	}
 
+	s.mtx.Lock()
 	s.room.combinations = append(s.room.combinations, *choice)
+	s.mtx.Unlock()
+
 	if len(s.room.combinations) == len(s.room.players) {
 		winners := s.room.winnerDefiner.GetWinners(s.room.combinations)
 		log.Info().Msgf("Winners: %v", winners)
