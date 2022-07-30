@@ -39,8 +39,8 @@ func NewGame(playerCount int, obs *subscribe.Publisher) *Game {
 	return game
 }
 
-func (game *Game) HasPlayer(playerName string) bool {
-	for _, pl := range game.players {
+func (g *Game) HasPlayer(playerName string) bool {
+	for _, pl := range g.players {
 		if pl.GetID() == playerName {
 			return true
 		}
@@ -48,22 +48,22 @@ func (game *Game) HasPlayer(playerName string) bool {
 	return false
 }
 
-func (game *Game) AddPlayer(player *domain.Player) error {
-	return game.state.AddPlayer(player)
+func (g *Game) AddPlayer(player *domain.Player) error {
+	return g.state.AddPlayer(player)
 }
 
-func (game *Game) Choose(choice *PlayerChoice) error {
-	return game.state.Choose(choice)
+func (g *Game) Choose(choice *PlayerChoice) error {
+	return g.state.Choose(choice)
 }
 
-func (game *Game) GetLeader() (string, error) {
-	return game.state.GetLeader()
+func (g *Game) GetLeader() (string, error) {
+	return g.state.GetLeader()
 }
 
-func (game *Game) GetPlayerScore(name string) (uint64, error) {
-	return game.state.GetPlayerScore(name)
+func (g *Game) GetPlayerScore(id string) (uint64, error) {
+	return g.state.GetPlayerScore(id)
 }
 
-func (game *Game) IncPlayerScore(name string) error {
-	return game.state.IncPlayerScore(name)
+func (g *Game) IncPlayerScore(id string) error {
+	return g.state.IncPlayerScore(id)
 }
