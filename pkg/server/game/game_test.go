@@ -34,7 +34,7 @@ func TestGame_AddPlayer(t *testing.T) {
 			combinations:  nil,
 			state:         nil,
 			observer:      subscribe.NewPublisher(),
-			stepMtx:       new(sync.Mutex),
+			mtx:           new(sync.Mutex),
 			winnerDefiner: nil,
 			scoremanager:  nil,
 		}
@@ -112,7 +112,7 @@ func TestGame_Choose(t *testing.T) {
 			combinations:  existingChoices,
 			state:         nil,
 			observer:      subscribe.NewPublisher(),
-			stepMtx:       nil,
+			mtx:           nil,
 			winnerDefiner: nil,
 			scoremanager:  nil,
 		}
@@ -220,7 +220,7 @@ func TestGame_HasPlayer(t *testing.T) {
 			combinations:  nil,
 			state:         nil,
 			observer:      nil,
-			stepMtx:       nil,
+			mtx:           nil,
 			winnerDefiner: nil,
 			scoremanager:  nil,
 		}

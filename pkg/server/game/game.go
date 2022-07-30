@@ -2,7 +2,6 @@ package game
 
 import (
 	"errors"
-	"sync"
 
 	"github.com/pavel/PSR/pkg/domain"
 	. "github.com/pavel/PSR/pkg/server/score-manager"
@@ -18,10 +17,10 @@ var (
 
 type Game struct {
 	players       []*domain.Player
+	maxPlayers    int
 	combinations  []PlayerChoice
 	state         State
 	observer      *subscribe.Publisher
-	stepMtx       *sync.Mutex
 	winnerDefiner *WinnerDefiner
 	scoremanager  *ScoreManager
 }
@@ -29,10 +28,10 @@ type Game struct {
 func NewGame(playerCount int, obs *subscribe.Publisher) *Game {
 	game := &Game{
 		players:       make([]*domain.Player, 0, playerCount),
-		combinations:  make([]PlayerChoice, 0, playerCount),
+		maxPlayers:    playerCount,
+		combinations:  nil,
 		state:         nil,
 		observer:      obs,
-		stepMtx:       new(sync.Mutex),
 		winnerDefiner: new(WinnerDefiner),
 		scoremanager:  nil,
 	}
@@ -47,19 +46,6 @@ func (game *Game) HasPlayer(playerName string) bool {
 		}
 	}
 	return false
-}
-
-func (game *Game) GetPlayerCount() int {
-	return len(game.players)
-}
-
-func (game *Game) Start() {
-	game.state = NewPlayingState(game)
-	game.scoremanager = NewScoreManager(game.players)
-}
-
-func (game *Game) ResetCombinations() {
-	game.combinations = make([]PlayerChoice, 0, len(game.combinations))
 }
 
 func (game *Game) AddPlayer(player *domain.Player) error {

@@ -18,7 +18,6 @@ type Room struct {
 	cfg                *RoomConfig
 	mtx                *sync.Mutex
 	playerToConnection map[string]*websocket.Conn
-	publisher          *subscribe.Publisher
 	roomStateSub       *subscribe.Subscriber
 	winnersSub         *subscribe.Subscriber
 }
@@ -52,7 +51,6 @@ func NewRoom(cfg *RoomConfig) (*Room, error) {
 		cfg:                cfg,
 		mtx:                new(sync.Mutex),
 		playerToConnection: make(map[string]*websocket.Conn, cfg.MaxPlayerCount),
-		publisher:          p,
 		roomStateSub:       subRoomState,
 		winnersSub:         subWinners,
 	}, nil
@@ -123,8 +121,6 @@ func (r *Room) Main() {
 			}
 			break
 		}
-
-		r.game.ResetCombinations()
 	}
 	r.CloseConnections()
 }
@@ -152,16 +148,6 @@ func (r *Room) AddPlayer(id string, conn *websocket.Conn) {
 
 	go r.listenConn(id, conn)
 
-	if r.game.GetPlayerCount() == r.cfg.MaxPlayerCount {
-		r.game.Start()
-		log.Info().Msgf("Game started in room %q", r.cfg.Name)
-
-		err := r.publisher.Publish("room_started", struct{}{})
-		if err != nil {
-			log.Error().Err(err).Msg("Failed to publish event \"room_started\"")
-			return
-		}
-	}
 }
 
 func (r *Room) listenConn(id string, conn *websocket.Conn) {
