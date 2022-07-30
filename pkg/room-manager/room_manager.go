@@ -70,7 +70,10 @@ func (rm *RoomManager) CheckRoomConfig(cfg *room.RoomConfig) error {
 }
 
 func (rm *RoomManager) GetRoomByID(name string) (*room.Room, error) {
+	rm.mtx.Lock()
 	room, exist := rm.rooms[name]
+	rm.mtx.Unlock()
+
 	if !exist {
 		return nil, ErrRoomDontExist
 	}
