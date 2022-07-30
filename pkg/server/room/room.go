@@ -2,7 +2,6 @@ package room
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -62,31 +61,42 @@ func (r *Room) RoundProcess() {
 		log.Error().Msgf("Received wrong winners type, got = %T, expected = []string", winners)
 		return
 	}
-	messages := map[winType]string{
-		WIN:  "You won!",
-		LOSE: fmt.Sprintf("You lost! Winners: %s", strings.Join(winners, ", ")),
-		TIE:  "Draw, everyone lost!",
-	}
-	getMessage := func(name string) winType {
-		winStatus := LOSE
-		for _, winner := range winners {
-			if name == winner {
-				winStatus = WIN
-			}
-		}
-		if len(winners) == 0 {
-			winStatus = TIE
-		}
-		return winStatus
-	}
+
 	for _, name := range winners {
 		if err := r.game.IncPlayerScore(name); err != nil {
 			log.Error().Err(err).Msgf("Incrementing score for player %q error", name)
 		}
 	}
-	for name, conn := range r.playerToConnection {
-		if err := conn.WriteMessage(websocket.TextMessage, []byte(messages[getMessage(name)])); err != nil {
-			log.Error().Err(err).Msgf("Error sending winner signal to player %q", name)
+
+	for id, conn := range r.playerToConnection {
+		var (
+			winnerCheck bool
+			message     string
+		)
+
+		score, err := r.game.GetPlayerScore(id)
+		if err != nil {
+			log.Error().Err(err).Msgf("Error can't find player with id %q", id)
+		}
+
+		for _, winner := range winners {
+			if id == winner {
+				winnerCheck = true
+			}
+		}
+		if winnerCheck {
+			message = "You win!"
+		} else {
+			message = "You lose!"
+		}
+		if len(winners) == 0 {
+			message = "Tie!"
+		}
+
+		message = fmt.Sprintf("%s Your score: %d", message, score)
+
+		if err := conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+			log.Error().Err(err).Msgf("Error sending winner signal to player %q", id)
 		}
 	}
 }
@@ -110,7 +120,7 @@ func (r *Room) Worker() {
 
 		leadingPlayerScore, err := r.game.GetPlayerScore(leadingPlayerName)
 		if err != nil {
-			log.Warn().Err(err).Msgf("Error Getting player %q score", leadingPlayerName)
+			log.Warn().Err(err).Msgf("Error getting player %q score", leadingPlayerName)
 			break
 		}
 
