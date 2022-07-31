@@ -8,13 +8,13 @@ import (
 )
 
 type PlayingState struct {
-	room *Game
+	game *Game
 	mtx  *sync.Mutex
 }
 
 func NewPlayingState(r *Game) *PlayingState {
 	return &PlayingState{
-		room: r,
+		game: r,
 		mtx:  new(sync.Mutex),
 	}
 }
@@ -24,22 +24,22 @@ func (s *PlayingState) AddPlayer(player *domain.Player) error {
 }
 
 func (s *PlayingState) Choose(id string, choice domain.Choice) error {
-	if !s.room.HasPlayer(id) {
+	if !s.game.HasPlayer(id) {
 		return ErrPlayerNotPresent
 	}
 
 	s.mtx.Lock()
-	s.room.combinations[id] = choice
+	s.game.combinations[id] = choice
 
-	last := len(s.room.combinations) == len(s.room.players)
+	last := len(s.game.combinations) == len(s.game.players)
 	s.mtx.Unlock()
 
 	if last {
-		winners := s.room.winnerDefiner.GetWinners(s.room.combinations)
+		winners := s.game.winnerDefiner.GetWinners(s.game.combinations)
 		log.Info().Msgf("Winners: %v", winners)
 
-		err := s.room.observer.Publish("winners", winners)
-		s.room.combinations = make(map[string]domain.Choice, len(s.room.players))
+		err := s.game.observer.Publish("winners", winners)
+		s.game.combinations = make(map[string]domain.Choice, len(s.game.players))
 
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to publish event \"winners\"")
@@ -51,11 +51,11 @@ func (s *PlayingState) Choose(id string, choice domain.Choice) error {
 }
 
 func (s *PlayingState) GetLeader() (string, error) {
-	return s.room.scoremanager.GetLeadingPlayerName(), nil
+	return s.game.scoremanager.GetLeadingPlayerName(), nil
 }
 
 func (s *PlayingState) GetPlayerScore(name string) (uint64, error) {
-	score, err := s.room.scoremanager.GetPlayerScore(name)
+	score, err := s.game.scoremanager.GetPlayerScore(name)
 	if err != nil {
 		return 0, ErrPlayerNotPresent
 	}
@@ -63,9 +63,9 @@ func (s *PlayingState) GetPlayerScore(name string) (uint64, error) {
 	return score, nil
 }
 
-func (s *PlayingState) IncPlayerScore(name string) error {
-	if err := s.room.scoremanager.IncrementPlayerScore(name); err != nil {
-		log.Error().Err(err).Msgf("Player \"%s\" not found by score_manager", name)
+func (s *PlayingState) IncPlayerScore(id string) error {
+	if err := s.game.scoremanager.IncrementPlayerScore(id); err != nil {
+		log.Error().Err(err).Msgf("Player %q not found by score_manager", id)
 		return ErrPlayerNotPresent
 	}
 

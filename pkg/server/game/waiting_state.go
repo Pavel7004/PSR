@@ -39,7 +39,7 @@ func (s *WaitingState) AddPlayer(player *domain.Player) error {
 		}
 	}
 
-	log.Info().Msgf("Player %s added to the room", player.GetID())
+	log.Info().Msgf("Player %q added to the room", player.GetID())
 
 	return nil
 }
