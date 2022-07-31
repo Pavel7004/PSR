@@ -18,7 +18,7 @@ var (
 type Game struct {
 	players       []*domain.Player
 	maxPlayers    int
-	combinations  []PlayerChoice
+	combinations  map[string]domain.Choice
 	state         State
 	observer      *subscribe.Publisher
 	winnerDefiner *WinnerDefiner
@@ -50,8 +50,8 @@ func (g *Game) AddPlayer(player *domain.Player) error {
 	return g.state.AddPlayer(player)
 }
 
-func (g *Game) Choose(choice *PlayerChoice) error {
-	return g.state.Choose(choice)
+func (g *Game) Choose(id string, choice domain.Choice) error {
+	return g.state.Choose(id, choice)
 }
 
 func (g *Game) GetLeader() (string, error) {

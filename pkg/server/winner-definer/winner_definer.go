@@ -4,14 +4,14 @@ import "github.com/pavel/PSR/pkg/domain"
 
 type WinnerDefiner struct{}
 
-func (wd *WinnerDefiner) GetWinners(playersChoices []PlayerChoice) []string {
+func (wd *WinnerDefiner) GetWinners(playersChoices map[string]domain.Choice) []string {
 	count := map[domain.Choice]int{
 		domain.ROCK:     0,
 		domain.PAPER:    0,
 		domain.SCISSORS: 0,
 	}
 	for _, choice := range playersChoices {
-		count[choice.Input]++
+		count[choice]++
 	}
 	missing := -1
 	for key, value := range count {
@@ -27,9 +27,9 @@ func (wd *WinnerDefiner) GetWinners(playersChoices []PlayerChoice) []string {
 	}
 	winningPiece := domain.Choice((missing + 2) % 3)
 	winners := []string{}
-	for _, choice := range playersChoices {
-		if choice.Input.Compare(winningPiece) == 0 {
-			winners = append(winners, choice.PlayerID)
+	for id, choice := range playersChoices {
+		if choice.Compare(winningPiece) == 0 {
+			winners = append(winners, id)
 		}
 	}
 	return winners

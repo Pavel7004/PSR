@@ -2,6 +2,7 @@ package winner_definer
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/pavel/PSR/pkg/domain"
@@ -9,7 +10,7 @@ import (
 
 func TestWinnerDefiner_GetWinners(t *testing.T) {
 	type args struct {
-		playersChoices []PlayerChoice
+		playersChoices map[string]domain.Choice
 	}
 	tests := []struct {
 		name string
@@ -21,19 +22,10 @@ func TestWinnerDefiner_GetWinners(t *testing.T) {
 			name: "Rocks vs Paper",
 			wd:   &WinnerDefiner{},
 			args: args{
-				[]PlayerChoice{
-					{
-						"Player 1",
-						domain.PAPER,
-					},
-					{
-						"Player 2",
-						domain.ROCK,
-					},
-					{
-						"Player 3",
-						domain.ROCK,
-					},
+				playersChoices: map[string]domain.Choice{
+					"Player 1": domain.PAPER,
+					"Player 2": domain.ROCK,
+					"Player 3": domain.ROCK,
 				},
 			},
 			want: []string{"Player 1"},
@@ -42,23 +34,11 @@ func TestWinnerDefiner_GetWinners(t *testing.T) {
 			name: "Scissors vs papers",
 			wd:   &WinnerDefiner{},
 			args: args{
-				[]PlayerChoice{
-					{
-						"Player 1",
-						domain.PAPER,
-					},
-					{
-						"Player 2",
-						domain.SCISSORS,
-					},
-					{
-						"Player 3",
-						domain.PAPER,
-					},
-					{
-						"Player 4",
-						domain.SCISSORS,
-					},
+				playersChoices: map[string]domain.Choice{
+					"Player 1": domain.PAPER,
+					"Player 2": domain.SCISSORS,
+					"Player 3": domain.PAPER,
+					"Player 4": domain.SCISSORS,
 				},
 			},
 			want: []string{"Player 2", "Player 4"},
@@ -67,23 +47,11 @@ func TestWinnerDefiner_GetWinners(t *testing.T) {
 			name: "Rock vs scissors",
 			wd:   &WinnerDefiner{},
 			args: args{
-				[]PlayerChoice{
-					{
-						"Player 1",
-						domain.ROCK,
-					},
-					{
-						"Player 2",
-						domain.SCISSORS,
-					},
-					{
-						"Player 3",
-						domain.SCISSORS,
-					},
-					{
-						"Player 4",
-						domain.SCISSORS,
-					},
+				playersChoices: map[string]domain.Choice{
+					"Player 1": domain.ROCK,
+					"Player 2": domain.SCISSORS,
+					"Player 3": domain.SCISSORS,
+					"Player 4": domain.SCISSORS,
 				},
 			},
 			want: []string{"Player 1"},
@@ -92,23 +60,11 @@ func TestWinnerDefiner_GetWinners(t *testing.T) {
 			name: "Mixed",
 			wd:   &WinnerDefiner{},
 			args: args{
-				[]PlayerChoice{
-					{
-						"Player 1",
-						domain.PAPER,
-					},
-					{
-						"Player 2",
-						domain.SCISSORS,
-					},
-					{
-						"Player 3",
-						domain.ROCK,
-					},
-					{
-						"Player 4",
-						domain.SCISSORS,
-					},
+				playersChoices: map[string]domain.Choice{
+					"Player 1": domain.PAPER,
+					"Player 2": domain.SCISSORS,
+					"Player 3": domain.ROCK,
+					"Player 4": domain.SCISSORS,
 				},
 			},
 			want: []string{},
@@ -117,23 +73,11 @@ func TestWinnerDefiner_GetWinners(t *testing.T) {
 			name: "The same",
 			wd:   &WinnerDefiner{},
 			args: args{
-				[]PlayerChoice{
-					{
-						"Player 1",
-						domain.SCISSORS,
-					},
-					{
-						"Player 2",
-						domain.SCISSORS,
-					},
-					{
-						"Player 3",
-						domain.SCISSORS,
-					},
-					{
-						"Player 4",
-						domain.SCISSORS,
-					},
+				playersChoices: map[string]domain.Choice{
+					"Player 1": domain.SCISSORS,
+					"Player 2": domain.SCISSORS,
+					"Player 3": domain.SCISSORS,
+					"Player 4": domain.SCISSORS,
 				},
 			},
 			want: []string{},
@@ -142,7 +86,11 @@ func TestWinnerDefiner_GetWinners(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			wd := &WinnerDefiner{}
-			if got := wd.GetWinners(tt.args.playersChoices); !reflect.DeepEqual(got, tt.want) {
+			got := wd.GetWinners(tt.args.playersChoices)
+			sort.Slice(got, func(i, j int) bool {
+				return got[i] < got[j]
+			})
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("WinnerDefiner.GetWinners() = %v, want %v", got, tt.want)
 			}
 		})

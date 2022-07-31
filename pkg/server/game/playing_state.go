@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/pavel/PSR/pkg/domain"
-	. "github.com/pavel/PSR/pkg/server/winner-definer"
 	"github.com/rs/zerolog/log"
 )
 
@@ -24,21 +23,23 @@ func (s *PlayingState) AddPlayer(player *domain.Player) error {
 	return ErrGameAlreadyStarted
 }
 
-func (s *PlayingState) Choose(choice *PlayerChoice) error {
-	if !s.room.HasPlayer(choice.PlayerID) {
+func (s *PlayingState) Choose(id string, choice domain.Choice) error {
+	if !s.room.HasPlayer(id) {
 		return ErrPlayerNotPresent
 	}
 
 	s.mtx.Lock()
-	s.room.combinations = append(s.room.combinations, *choice)
+	s.room.combinations[id] = choice
+
+	last := len(s.room.combinations) == len(s.room.players)
 	s.mtx.Unlock()
 
-	if len(s.room.combinations) == len(s.room.players) {
+	if last {
 		winners := s.room.winnerDefiner.GetWinners(s.room.combinations)
 		log.Info().Msgf("Winners: %v", winners)
 
 		err := s.room.observer.Publish("winners", winners)
-		s.room.combinations = make([]PlayerChoice, 0, len(s.room.combinations))
+		s.room.combinations = make(map[string]domain.Choice, len(s.room.players))
 
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to publish event \"winners\"")

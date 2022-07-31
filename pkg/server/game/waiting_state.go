@@ -6,7 +6,6 @@ import (
 	"github.com/pavel/PSR/pkg/domain"
 
 	scoremanager "github.com/pavel/PSR/pkg/server/score-manager"
-	. "github.com/pavel/PSR/pkg/server/winner-definer"
 	"github.com/rs/zerolog/log"
 )
 
@@ -28,7 +27,7 @@ func (s *WaitingState) AddPlayer(player *domain.Player) error {
 	if len(s.game.players) == s.game.maxPlayers {
 		s.game.state = NewPlayingState(s.game)
 		s.game.scoremanager = scoremanager.NewScoreManager(s.game.players)
-		s.game.combinations = make([]PlayerChoice, 0, len(s.game.combinations))
+		s.game.combinations = make(map[string]domain.Choice, len(s.game.players))
 
 		err := s.game.observer.Publish("room_started", struct{}{})
 		if err != nil {
@@ -42,7 +41,7 @@ func (s *WaitingState) AddPlayer(player *domain.Player) error {
 	return nil
 }
 
-func (s *WaitingState) Choose(choice *PlayerChoice) error {
+func (s *WaitingState) Choose(id string, choice domain.Choice) error {
 	return ErrGameNotStarted
 }
 
