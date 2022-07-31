@@ -29,13 +29,11 @@ func NewGame(playerCount int, obs *subscribe.Publisher) *Game {
 	game := &Game{
 		players:       make([]*domain.Player, 0, playerCount),
 		maxPlayers:    playerCount,
-		combinations:  nil,
-		state:         nil,
 		observer:      obs,
 		winnerDefiner: new(WinnerDefiner),
-		scoremanager:  nil,
 	}
 	game.state = NewWaitingState(game)
+
 	return game
 }
 
