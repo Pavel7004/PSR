@@ -24,7 +24,11 @@ func NewWaitingState(g *Game) *WaitingState {
 func (s *WaitingState) AddPlayer(player *domain.Player) error {
 	s.mtx.Lock()
 	s.game.players = append(s.game.players, player)
-	if len(s.game.players) == s.game.maxPlayers {
+
+	last := len(s.game.players) == s.game.maxPlayers
+	s.mtx.Unlock()
+
+	if last {
 		s.game.state = NewPlayingState(s.game)
 		s.game.scoremanager = scoremanager.NewScoreManager(s.game.players)
 		s.game.combinations = make(map[string]domain.Choice, len(s.game.players))
@@ -34,7 +38,6 @@ func (s *WaitingState) AddPlayer(player *domain.Player) error {
 			log.Error().Err(err).Msg("Failed to publish event \"room_started\"")
 		}
 	}
-	s.mtx.Unlock()
 
 	log.Info().Msgf("Player %s added to the room", player.GetID())
 
