@@ -32,8 +32,7 @@ func New() *Server {
 }
 
 func (s *Server) Run() {
-	err := s.server.ListenAndServe()
-	if err != nil {
+	if err := s.server.ListenAndServe(); err != nil {
 		panic(err)
 	}
 }
