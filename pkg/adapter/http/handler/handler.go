@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/rs/zerolog/log"
+
 	"github.com/pavel/PSR/pkg/server/room"
 	roommanager "github.com/pavel/PSR/pkg/server/room-manager"
-	"github.com/rs/zerolog/log"
 )
 
 type Handler struct {

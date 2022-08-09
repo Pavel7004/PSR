@@ -1,6 +1,8 @@
 package winner_definer
 
-import "github.com/pavel/PSR/pkg/domain"
+import (
+	"github.com/pavel/PSR/pkg/domain"
+)
 
 type WinnerDefiner struct{}
 

@@ -4,8 +4,9 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/pavel/PSR/pkg/server/room"
 	"github.com/rs/zerolog/log"
+
+	"github.com/pavel/PSR/pkg/server/room"
 )
 
 var (

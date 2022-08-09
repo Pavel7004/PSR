@@ -3,10 +3,10 @@ package game
 import (
 	"sync"
 
-	"github.com/pavel/PSR/pkg/domain"
-
-	scoremanager "github.com/pavel/PSR/pkg/server/score-manager"
 	"github.com/rs/zerolog/log"
+
+	"github.com/pavel/PSR/pkg/domain"
+	scoremanager "github.com/pavel/PSR/pkg/server/score-manager"
 )
 
 type WaitingState struct {

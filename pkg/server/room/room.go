@@ -6,10 +6,11 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/rs/zerolog/log"
+
 	"github.com/pavel/PSR/pkg/domain"
 	"github.com/pavel/PSR/pkg/server/game"
 	"github.com/pavel/PSR/pkg/server/subscribe"
-	"github.com/rs/zerolog/log"
 )
 
 type Room struct {

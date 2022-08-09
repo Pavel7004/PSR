@@ -3,9 +3,10 @@ package main
 import (
 	"os"
 
-	"github.com/pavel/PSR/pkg/adapter/http"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+
+	"github.com/pavel/PSR/pkg/adapter/http"
 )
 
 func main() {

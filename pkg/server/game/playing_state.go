@@ -3,8 +3,9 @@ package game
 import (
 	"sync"
 
-	"github.com/pavel/PSR/pkg/domain"
 	"github.com/rs/zerolog/log"
+
+	"github.com/pavel/PSR/pkg/domain"
 )
 
 type PlayingState struct {
