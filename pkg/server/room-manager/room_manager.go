@@ -29,8 +29,7 @@ func New() *RoomManager {
 }
 
 func (rm *RoomManager) CreateRoom(cfg *room.RoomConfig) error {
-	err := rm.CheckRoomConfig(cfg)
-	if err != nil {
+	if err := rm.CheckRoomConfig(cfg); err != nil {
 		log.Warn().Err(err).Msg("Bad room config.")
 		return err
 	}

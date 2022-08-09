@@ -2,6 +2,7 @@ package room
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -67,7 +68,7 @@ func (r *Room) RoundProcess() {
 
 		score, err := r.game.GetPlayerScore(id)
 		if err != nil {
-			log.Error().Err(err).Msgf("Error can't find player with id %q", id)
+			log.Error().Err(err).Msgf("Error finding player %q", id)
 		}
 
 		for _, winner := range winners {
@@ -78,13 +79,17 @@ func (r *Room) RoundProcess() {
 		if winnerCheck {
 			message = "You win!"
 		} else {
-			message = "You lose!"
+			message = fmt.Sprintf("You lose! Winners: %v", winners)
 		}
 		if len(winners) == 0 {
 			message = "Tie!"
 		}
 
-		message = fmt.Sprintf("%s Your score: %d", message, score)
+		if err := conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+			log.Error().Err(err).Msgf("Error sending winner signal to player %q", id)
+		}
+
+		message = "Score " + strconv.FormatUint(score, 10)
 
 		if err := conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
 			log.Error().Err(err).Msgf("Error sending winner signal to player %q", id)
