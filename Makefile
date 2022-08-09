@@ -4,7 +4,7 @@ build:
 	@echo "------------------"
 	@echo "Building app...   "
 	@echo "------------------"
-	go build cmd/server/server.go
+	go build cmd/app/app.go
 
 lint:
 	@echo "------------------"
@@ -22,9 +22,9 @@ jaeger:
 	docker run -dp 6831:6831/udp -p 16686:16686 jaegertracing/all-in-one:latest
 
 clear:
-	rm shop *.out
+	rm app *.out
 
-clean:
+clearCache:
 	go clean -testcache
 	go clean -cache
 

@@ -3,12 +3,10 @@ package game
 import (
 	"fmt"
 	"reflect"
-	"sync"
 	"testing"
 
 	"github.com/pavel/PSR/pkg/domain"
-	"github.com/pavel/PSR/pkg/subscribe"
-	. "github.com/pavel/PSR/pkg/winner-definer"
+	"github.com/pavel/PSR/pkg/server/subscribe"
 )
 
 func TestGame_AddPlayer(t *testing.T) {
@@ -34,7 +32,6 @@ func TestGame_AddPlayer(t *testing.T) {
 			combinations:  nil,
 			state:         nil,
 			observer:      subscribe.NewPublisher(),
-			stepMtx:       new(sync.Mutex),
 			winnerDefiner: nil,
 			scoremanager:  nil,
 		}
@@ -106,15 +103,11 @@ func TestGame_AddPlayer(t *testing.T) {
 }
 
 func TestGame_Choose(t *testing.T) {
-	initTestRoomFn := func(maxPlayers int, isRunning bool, existingChoices []PlayerChoice) *Game {
+	initTestRoomFn := func(maxPlayers int, isRunning bool, existingChoices map[string]domain.Choice) *Game {
 		game := &Game{
-			players:       make([]*domain.Player, 0, maxPlayers),
-			combinations:  existingChoices,
-			state:         nil,
-			observer:      subscribe.NewPublisher(),
-			stepMtx:       nil,
-			winnerDefiner: nil,
-			scoremanager:  nil,
+			players:      make([]*domain.Player, 0, maxPlayers),
+			combinations: existingChoices,
+			observer:     subscribe.NewPublisher(),
 		}
 		if isRunning {
 			game.state = NewPlayingState(game)
@@ -129,13 +122,14 @@ func TestGame_Choose(t *testing.T) {
 		return game
 	}
 	type args struct {
-		choice *PlayerChoice
+		id     string
+		choice domain.Choice
 	}
 	tests := []struct {
 		name             string
 		roomCap          int
-		initFn           func(maxPlayers int, isRunning bool, existingChoices []PlayerChoice) *Game
-		initCombinations []PlayerChoice
+		initFn           func(maxPlayers int, isRunning bool, existingChoices map[string]domain.Choice) *Game
+		initCombinations map[string]domain.Choice
 		isStarted        bool
 		winners          []string
 		args             args
@@ -145,50 +139,50 @@ func TestGame_Choose(t *testing.T) {
 			name:             "Try to choose in non-started room",
 			roomCap:          2,
 			initFn:           initTestRoomFn,
-			initCombinations: []PlayerChoice{},
+			initCombinations: map[string]domain.Choice{},
 			isStarted:        false,
 			winners:          nil,
-			args:             args{&PlayerChoice{PlayerID: "TestPlayer1", Input: 0}},
+			args:             args{id: "TestPlayer1", choice: 0},
 			wantErr:          true,
 		},
 		{
 			name:             "Choose in playing state",
 			roomCap:          2,
 			initFn:           initTestRoomFn,
-			initCombinations: []PlayerChoice{},
+			initCombinations: map[string]domain.Choice{},
 			isStarted:        true,
 			winners:          nil,
-			args:             args{&PlayerChoice{PlayerID: "TestPlayer1", Input: 0}},
+			args:             args{id: "TestPlayer1", choice: 0},
 			wantErr:          false,
 		},
 		{
 			name:             "Choose with player not present",
 			roomCap:          2,
 			initFn:           initTestRoomFn,
-			initCombinations: []PlayerChoice{},
+			initCombinations: map[string]domain.Choice{},
 			isStarted:        true,
 			winners:          nil,
-			args:             args{&PlayerChoice{PlayerID: "Player1", Input: 0}},
+			args:             args{id: "Player1", choice: 0},
 			wantErr:          true,
 		},
 		{
 			name:             "Last player choose",
 			roomCap:          2,
 			initFn:           initTestRoomFn,
-			initCombinations: []PlayerChoice{{PlayerID: "TestPlayer1", Input: 0}},
+			initCombinations: map[string]domain.Choice{"TestPlayer1": 0},
 			isStarted:        true,
 			winners:          []string{},
-			args:             args{&PlayerChoice{PlayerID: "TestPlayer2", Input: 0}},
+			args:             args{id: "TestPlayer2", choice: 0},
 			wantErr:          false,
 		},
 		{
 			name:             "Last player choose, check winners",
 			roomCap:          2,
 			initFn:           initTestRoomFn,
-			initCombinations: []PlayerChoice{{PlayerID: "TestPlayer1", Input: 0}},
+			initCombinations: map[string]domain.Choice{"TestPlayer1": 0},
 			isStarted:        true,
 			winners:          []string{"TestPlayer2"},
-			args:             args{&PlayerChoice{PlayerID: "TestPlayer2", Input: 1}},
+			args:             args{id: "TestPlayer2", choice: 1},
 			wantErr:          false,
 		},
 	}
@@ -197,7 +191,7 @@ func TestGame_Choose(t *testing.T) {
 			room := tt.initFn(tt.roomCap, tt.isStarted, tt.initCombinations)
 			sub := subscribe.NewSubscriber(1)
 			room.observer.Subscribe(sub, "winners")
-			if err := room.Choose(tt.args.choice); (err != nil) != tt.wantErr {
+			if err := room.Choose(tt.args.id, tt.args.choice); (err != nil) != tt.wantErr {
 				t.Errorf("Room.Choose() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if tt.winners != nil {
@@ -220,7 +214,6 @@ func TestGame_HasPlayer(t *testing.T) {
 			combinations:  nil,
 			state:         nil,
 			observer:      nil,
-			stepMtx:       nil,
 			winnerDefiner: nil,
 			scoremanager:  nil,
 		}

@@ -1,6 +1,8 @@
 package room
 
-import "time"
+import (
+	"time"
+)
 
 type RoomConfig struct {
 	Name           string

@@ -1,6 +1,8 @@
 package domain
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestChoice_Compare(t *testing.T) {
 	type args struct {

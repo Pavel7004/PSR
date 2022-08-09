@@ -22,5 +22,5 @@ make build
 
 * Запуск программы
 #+begin_src sh
-./server
+./app
 #+end_src

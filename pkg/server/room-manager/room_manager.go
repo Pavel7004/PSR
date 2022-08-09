@@ -4,7 +4,9 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/pavel/PSR/pkg/room"
+	"github.com/rs/zerolog/log"
+
+	"github.com/pavel/PSR/pkg/server/room"
 )
 
 var (
@@ -28,18 +30,22 @@ func New() *RoomManager {
 }
 
 func (rm *RoomManager) CreateRoom(cfg *room.RoomConfig) error {
-	err := rm.CheckRoomConfig(cfg)
-	if err != nil {
+	if err := rm.CheckRoomConfig(cfg); err != nil {
+		log.Warn().Err(err).Msg("Bad room config.")
 		return err
 	}
 
-	room := room.NewRoom(cfg)
+	room, err := room.NewRoom(cfg)
+	if err != nil {
+		log.Warn().Err(err).Msg("Can't create new room.")
+		return err
+	}
 
 	rm.mtx.Lock()
 	rm.rooms[cfg.Name] = room
 	rm.mtx.Unlock()
 
-	go room.Main()
+	go room.Worker()
 
 	return nil
 }
@@ -64,7 +70,10 @@ func (rm *RoomManager) CheckRoomConfig(cfg *room.RoomConfig) error {
 }
 
 func (rm *RoomManager) GetRoomByID(name string) (*room.Room, error) {
+	rm.mtx.Lock()
 	room, exist := rm.rooms[name]
+	rm.mtx.Unlock()
+
 	if !exist {
 		return nil, ErrRoomDontExist
 	}
